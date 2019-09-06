@@ -20,10 +20,10 @@ class vtk_pipeline:
         # Defintion of visualization parameters 
         self.opacity_max_bolus = 0.5
         self.opacity_max_roadmap = 0.5
-        self.threshold_bolus = 20.0
-        self.threshold_roadmap = 20.0
-        self.intervall_bolus = 100.0
-        self.intervall_roadmap = 100.0
+        self.threshold_bolus = 0.0
+        self.threshold_roadmap = 0.0
+        self.intervall_bolus = 1.0
+        self.intervall_roadmap = 1.0
         self.min_image_value = 0
         self.max_image_value = 100
         self.dimension_vtk_data = [50, 50, 50]
@@ -225,24 +225,7 @@ class vtk_pipeline:
         # create vtk image
         self.imageDataTemp = self.imageReaderAngio.GetOutput()
         
-# =============================================================================
-#         resize = vtk.vtkImageResize()
-#         resize.SetInputData(self.imageDataTemp)
-#         resize.SetOutputDimensions(200, 200, 200)
-#         resize.Update()
-#         self.imageDataTemp = resize.GetOutput()
-# =============================================================================
-        
-        
-# =============================================================================
-#         for z in range(100):
-#             for y in range(100):
-#                 for x in range(100):
-#                     a = self.imageDataTemp.GetScalarComponentAsDouble(x, y, z, 0 )  
-#                     if a < 28000: 
-#                         self.imageDataTemp.SetScalarComponentFromDouble(x, y, z, 0, a / 2.0 )  
-# =============================================================================
-               
+         
                          
         
         # create image reslice mapper
@@ -279,37 +262,14 @@ class vtk_pipeline:
         self.TableAngio.SetAboveRangeColor (0, 0, 0, 1.0)
         self.TableAngio.UseAboveRangeColorOff ()
         self.TableAngio.SetNumberOfTableValues (1000)
-# =============================================================================
-#         self.TableAngio.SetTableValue(0     , 0.1     , 0.1     , 0.1, 0.1)
-#         self.TableAngio.SetTableValue(1     , 0.1    , 0.1     , 0.1, 0.8)
-# =============================================================================
+
         
         self.TableAngio.SetRampToSCurve () 
-        #self.TableAngio.SetRampToSQRT ()
-        #self.TableAngio.SetRampToLinear ()
+
         self.TableAngio.Build()
         
         
-        """
-    table_angio->SetTableRange(12000,55000);
-    table_angio->SetValueRange(1.0,0.0);
-    table_angio->SetSaturationRange (0.0, 0.0);
-    table_angio->SetHueRange (0, 0);
-    //table_angio->UseBelowRangeColorOn ();
-    //table_angio->UseAboveRangeColorOn ();
-    //table_angio->SetBelowRangeColor (0, 0, 0, 0.0);
-    //table_angio->SetAboveRangeColor (0, 0, 0, 0.0);
-    table_angio->SetNumberOfTableValues (500);
-    table_angio->SetRampToSCurve();
-   // table_angio->SetTableValue(0     , 1     , 1     , 1, 0.2);
-   // table_angio->SetTableValue(1.0     , 0     , 0    , 0, 0.4);
-    table_angio->SetScaleToLinear ();
-	imageSliceAngio->GetProperty()->UseLookupTableScalarRangeOn();
-	imageSliceAngio->GetProperty()->SetLookupTable(table_angio);
-        """
-        
-        
-        #self.TableAngio.SetRampToSCurve()
+
     
       
         self.ImageSliceAngio.GetProperty().UseLookupTableScalarRangeOn()
@@ -324,19 +284,7 @@ class vtk_pipeline:
         self.renAngio.SetBackground(0.9,0.9,0.9)
         self.renAngio.AddActor(self.ImageSliceAngio)    
     
-    
-        
-# =============================================================================
-#         
-#         
-#         self.RenderWindow = vtk.vtkRenderWindow()
-#         self.RenderWindow.AddRenderer(self.renAngio)
-#         self.RenderWindowInteractor = vtk.vtkRenderWindowInteractor()
-#         self.RenderWindowInteractor.SetRenderWindow(self.RenderWindow)    
-#         self.RenderWindow.Render()
-#         self.RenderWindowInteractor.Start() 
-#     
-# =============================================================================
+ 
             
 
     def create_and_update_lookup_table_angio(self):
@@ -348,9 +296,7 @@ class vtk_pipeline:
         
             
     def linearRampFunction(self, variable_ending, x):
-        # Frage an Rene: 
-        # Auf die Parameter von Bolus / Roadmap eher wie hier über eval() zugreifen 
-        # oder eher wie in "create_lookup_table", also per if-Abfrage beides explizit definieren????
+
         opacity_max_string = 'self.opacity_max_' + variable_ending        
         opacity_max = eval(opacity_max_string)
         
@@ -368,9 +314,12 @@ class vtk_pipeline:
     
         
     def create_lookup_table(self, name):
-        opacityTransferFunction = vtk.vtkPiecewiseFunction()
-        
-        
+        """ 
+        This function creates a lookup table based on the 
+        visualization parameters that can be dynamically changed using 
+        the sliders. 
+        """
+        opacityTransferFunction = vtk.vtkPiecewiseFunction()          
                
         if (name == 'bolus'):        
             x_increment = self.intervall_bolus / 10.0
@@ -397,6 +346,30 @@ class vtk_pipeline:
 
             
         return opacityTransferFunction 
+    
+    def initLookupTableSliders(self, min_, max_, dim_images):
+        self.total_image_value_range = max_ - min_
+        
+        self.min_image_value = min_
+        self.max_image_value = max_
+        
+        self.threshold_bolus =  self.total_image_value_range / 2.0
+        self.threshold_roadmap = self.total_image_value_range / 2.0
+        self.intervall_bolus = self.total_image_value_range / 2.0
+        self.intervall_roadmap = self.total_image_value_range / 2.0
+         
+        self.volumePropertyBolus.SetScalarOpacity(self.create_lookup_table('bolus')) 
+        self.volumePropertyRoadmap.SetScalarOpacity(self.create_lookup_table('roadmap')) 
+        
+        # Update color encoded intensity map             
+        self.updateColorMap(self.threshold_bolus)
+        self.updateScalarBar()      
+        
+        # Update dimensions of visualized dataset
+        self.dimension_vtk_data = dim_images
+        
+        # Clear road-map, if new dataset is loaded 
+        self.clear_roadmap_matrix()
     
     def create_lookup_table_from_manual_input(self): 
         opacityTransferFunction = vtk.vtkPiecewiseFunction()
@@ -439,10 +412,17 @@ class vtk_pipeline:
         
         return scalarBar
 
-            
+    def clear_roadmap_matrix(self):
+        self.x = np.zeros((self.dimension_vtk_data[0], \
+                   self.dimension_vtk_data[1], \
+                   self.dimension_vtk_data[2]))
+
+
+        
     def roadmap_buildup(self, temporary_image):
                          
         self.imageData1 = vtk.vtkImageData()
+       
         
         self.imageData1.SetDimensions(temporary_image.GetDimensions()[0], \
                  temporary_image.GetDimensions()[1],  \
@@ -476,6 +456,45 @@ class vtk_pipeline:
         
     
         self.volumeMapperRoadmap.SetInputData(self.imageData1)    
+    
+    def adjust_size_roadmap_matrix(self, dims):
+        imageData1 = vtk.vtkImageData()
+        imageData1.SetDimensions(self.x.shape)        
+        imageData1.AllocateScalars(vtk.VTK_DOUBLE, 1)    
+        
+        
+        
+        dims_old = self.x.shape
+        for z in range(dims_old[2]):
+            for y in range(dims_old[1]):
+                for x in range(dims_old[0]):   
+                    iv = self.x[x,y,z]
+                    imageData1.SetScalarComponentFromDouble(x, y, z, 0, iv)
+        
+        
+        
+                  
+        resize = vtk.vtkImageResize()
+        resize.SetInputData(imageData1)
+        resize.SetOutputDimensions(dims[0],dims[1],dims[2])
+        resize.Update()
+        imageData1 = resize.GetOutput()
+        
+        self.x = np.zeros((dims[0], dims[1], dims[2]))
+        
+        print("2")
+        
+        for z in range(dims[2]):
+            for y in range(dims[1]):
+                for x in range(dims[0]):   
+                    
+                    iv = imageData1.GetScalarComponentAsDouble(x, y, z, 0)
+                    self.x[x,y,z] = iv
+        
+        
+        self.volumeMapperRoadmap.SetInputData(self.imageData1)  
+        
+        
     
     def create_empty_image_data(self):
         
