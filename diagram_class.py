@@ -41,6 +41,7 @@ class plotDiagrams:
         self.color_bolus = 'red'
         self.color_roadmap = 'green'
         
+       
         
         self.manual_lookup_table_matrix = None
         
@@ -55,53 +56,36 @@ class plotDiagrams:
         
 
 
-    def drawHistogram(self):    
-            
+    def drawHistogram(self):                
+        self.ax.clear()
         self.ax.set_xlim( min(self.menge), max(self.menge)  )
+        self.ax.set_yscale('log')
         
         self.ax.hist(self.menge, bins=40)        
-    
+        
         self.ax.plot()
     
-        self.canvas.draw()        
-        
-            
-    def computeHistogramDataBin(self, directory, number_of_total_images, mode):    
-        """
-        This function gathers image values of the dataset in order 
-        to create a data bin that is used for histogram visualization. The 
-        variable n = "self.image_analysis_step_size" defines that every n-th 
-        voxel is collected. 
-        """
-        
-        count = 1    
-        menge = []   
-        
-        if mode == 'mdf': 
-            # No iteration has to be done using mdf data structure                  
-            menge = mdf_reader.return_data_array(directory)
-        
-           
-        if mode == 'mha':  
-            print('Sampling image values from total ', number_of_total_images, ' images', end = "")
-            for i in range(number_of_total_images - 1):                
-                imageDataTemp = mha_reader.create_VTK_data_from_mha_file(directory, count, True, self.down_sample_size)
-                dims_histo = imageDataTemp.GetDimensions()       
-                               
-                for z in range(0,dims_histo[2],self.image_analysis_step_size):
-                    for y in range(0,dims_histo[1],self.image_analysis_step_size):
-                        for x in range(0,dims_histo[0],self.image_analysis_step_size):                        
-                            
-                            k = imageDataTemp.GetScalarComponentAsDouble(x, y, z, 0)
-                            menge = menge + [k]    
-                        
-                print('.', end = "")
-                count = count + 1
-                
+        self.canvas.draw()    
 
         
+            
+    def computeHistogramDataBin(self, directory, mode):    
+        """
+        This function gathers image values of the dataset in order 
+        to create a data bin that is used for histogram visualization. 
+        """
         
-    
+       
+        menge = []   
+        
+        if mode == 'mdf':                        
+            menge = mdf_reader.return_data_array(directory)        
+           
+        if mode == 'mha':  
+            menge = mha_reader.return_data_array(directory)
+
+                
+  
         self.menge = menge
         
         self.max_image_value  = max(self.menge)

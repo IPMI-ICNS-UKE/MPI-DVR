@@ -45,6 +45,8 @@ def create_VTK_data_from_HDF(directory_mdf, count, interpolation, vtk_image_data
     
     return imageData
 
+def return_dimensions_image_data(directory_mdf):    
+    return h5py.File(str(directory_mdf),'r')['reconstruction/size']
 
                 
 def get_number_of_images(directory_mdf):    

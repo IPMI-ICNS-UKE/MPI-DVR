@@ -21,9 +21,7 @@ class MainWindow(Qt.QMainWindow):
         Qt.QMainWindow.__init__(self, parent) 
         
         # Adjust window size        
-        self.resize(1400, 900)
-        
-    
+        self.resize(1400, 900)    
         
         # Time per image; playback speed is intitially set to this 
         # value but can be changed during visualization using the playback 
@@ -35,15 +33,11 @@ class MainWindow(Qt.QMainWindow):
         # will be interpolated to this size if variable "interpolation" is set to true,
         # otherwise original image dimensions of source will be used
         self.interpolation = False
-        self.dimension_vtk_data = [25, 25, 25]    
-        
-        #Random change
-       
-        #Random change2
-        
+        self.dims = [25, 25, 25]    
+   
         # Image count for screenshots of visualization screen
         self.screenshot_number = 1  
-        self.count = 1  
+        self.count = 0  
     
         self.previous_time = time.time()        
         self.directory_source = ""
@@ -70,7 +64,7 @@ class MainWindow(Qt.QMainWindow):
         # Creation of vtk class object to invoke the buildup
         # of visualization pipeline
         self.vtk_op = vtk_pipeline()     
-        self.vtk_op.dimension_vtk_data = self.dimension_vtk_data
+        #self.vtk_op.dimension_vtk_data = self.dims
    
         # Use of manual lookup tables
         self.manual_lookup_table_bolus = None
@@ -86,20 +80,18 @@ class MainWindow(Qt.QMainWindow):
         
         # Connect VTK pipeline renderer to QT frame display 
         self.vtkWidget.GetRenderWindow().AddRenderer(self.vtk_op.ren)        
-        
-        # Access render window interactor
-        self.iren = self.vtkWidget.GetRenderWindow().GetInteractor()
-        self.vtk_op.iren = self.iren               
-        
+       
         # Disable all interface widgets until source data is successfully loaded 
         # (except load buttons)
-        self.enable_disable_buttons(False)
-        
+        self.enable_disable_buttons(False)        
         self.button_load_mdf_file.setEnabled(True)
         self.button_load_mha_files.setEnabled(True)
         self.button_saving_directory_screenshots.setEnabled(True)        
         
+        # Set main window visible and access render window interactor
         self.show()
+        self.iren = self.vtkWidget.GetRenderWindow().GetInteractor()
+        self.vtk_op.iren = self.iren 
         self.iren.Initialize()
         self.iren.Start()     
         
@@ -117,16 +109,18 @@ class MainWindow(Qt.QMainWindow):
         It will be constantly invoked by the QT timer object. 
         The corresponding image data is aquired using the mdf / mha reader.         
         """        
+        # Defines number of image that will be visualized
+        self.count = self.count + 1 
         # Reset image count if out of boundary 
         # --> Image sequence restarts from the beginning 
         if self.count > self.number_of_total_images:
             self.count = 1             
   
         if self.format == 'mha':            
-            self.temporary_image = create_VTK_data_from_mha_file(self.directory_source, self.count, self.interpolation, self.dimension_vtk_data)
+            self.temporary_image = create_VTK_data_from_mha_file(self.directory_source, self.count, self.interpolation, self.dims)
             
         if self.format == 'mdf':            
-            self.temporary_image = create_VTK_data_from_HDF(self.directory_mdf, self.count-1, self.interpolation, self.dimension_vtk_data)           
+            self.temporary_image = create_VTK_data_from_HDF(self.directory_mdf, self.count-1, self.interpolation, self.dims)           
         
         self.vtk_op.volumeMapperBolus.SetInputData(self.temporary_image)        
         
@@ -143,11 +137,8 @@ class MainWindow(Qt.QMainWindow):
         
         # Save screenshots of visualized MPI data if checked
         if self.save_images_checkbox.isChecked():
-            interface.screenshot_and_save(self)                
-        
-        # Defines number of image that will be visualized
-        self.count = self.count + 1 
-        
+            interface.screenshot_and_save(self)  
+            
         self.iren.Initialize()
         self.iren.Start()    
     

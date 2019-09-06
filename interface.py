@@ -13,8 +13,10 @@ import datetime
 
 from functools import partial
 
-from mha_reader import create_VTK_data_from_mha_file, get_number_of_image_data
-from mdf_reader import create_VTK_data_from_HDF, get_number_of_images
+
+
+import mha_reader
+import mdf_reader
 
 import manual_input_lookup_table
 
@@ -173,35 +175,37 @@ def setPlaybackSpeed1(self, t):
         if not self.start_stop_button.isChecked(): 
             self.timer.stop()        
     
-def setMHASourceDirectory(self):    
-    self.format = 'mha'
+def setMHASourceDirectory(self):        
     fname = Qt.QFileDialog.getExistingDirectory(self, 'Open file', 'c:\\')        
     name = fname + "/1.mha"     
     if os.path.isfile(name):
+        self.format = 'mha'
         self.directory_source = fname
-        self.number_of_total_images =  get_number_of_image_data(self.directory_source)         
-        self.diagram_op.computeHistogramDataBin(self.directory_source, self.number_of_total_images, 'mha')
-        self.diagram_op.drawHistogram()        
+        self.number_of_total_images =  mha_reader.get_number_of_image_data(self.directory_source)   
+        self.dims = mha_reader.return_dims_of_first_image(self.directory_source) 
+        
+        # Create histogram and determine min/max image values
+        self.diagram_op.computeHistogramDataBin(self.directory_source, 'mha')
+        self.diagram_op.drawHistogram()   
+        self.diagram_op.drawLookupTable()
+        
+        # Values are used to update the value range of the slider widgets
         self.threshold_bolus =  self.diagram_op.threshold_bolus
         self.threshold_roadmap =  self.diagram_op.threshold_roadmap
         self.intervall_bolus =  self.diagram_op.intervall_bolus
-        self.intervall_roadmap =  self.diagram_op.intervall_roadmap        
-        self.vtk_op.min_image_value = min(self.diagram_op.menge)
-        self.vtk_op.max_image_value = max(self.diagram_op.menge)
-        self.vtk_op.threshold_bolus =  self.threshold_bolus
-        self.vtk_op.threshold_roadmap =  self.threshold_roadmap
-        self.vtk_op.intervall_bolus =  self.intervall_bolus
-        self.vtk_op.intervall_roadmap =  self.intervall_roadmap        
-        self.vtk_op.volumePropertyBolus.SetScalarOpacity(self.vtk_op.create_lookup_table('bolus')) 
-        self.vtk_op.volumePropertyRoadmap.SetScalarOpacity(self.vtk_op.create_lookup_table('roadmap'))         
-        self.diagram_op.drawLookupTable()
-        self.vtk_op.updateColorMap(self.threshold_bolus)
-        self.vtk_op.updateScalarBar()        
-        self.vtk_op.updateColorMap(self.threshold_bolus)
-        self.vtk_op.updateScalarBar()        
+        self.intervall_roadmap =  self.diagram_op.intervall_roadmap       
+          
+        # Create internal look up table for VTK pipeline                       
+        self.vtk_op.initLookupTableSliders(self.diagram_op.min_image_value, 
+                self.diagram_op.max_image_value, self.dims)
+        
+        # Update image count display
         image_count = '1 / '+ str(self.number_of_total_images)      
-        self.image_count_display.setText(image_count)        
-        self.enable_disable_buttons(True)    
+        self.image_count_display.setText(image_count)  
+        
+        # Enable all UI buttons, sliders and checkboxes
+        self.enable_disable_buttons(True) 
+        self.update_status()
     else: 
         print("Use valid directory")    
     
@@ -211,27 +215,33 @@ def setMDFSourceDirectory(self):
     if fname != '':
         self.format = 'mdf'
         self.directory_mdf = fname
-        self.number_of_total_images = get_number_of_images(self.directory_mdf)
-        self.diagram_op.computeHistogramDataBin(self.directory_mdf, self.number_of_total_images, 'mdf')    
-        self.diagram_op.drawHistogram()        
+        
+        # Get number of images and image size
+        self.number_of_total_images = mdf_reader.get_number_of_images(self.directory_mdf)
+        self.dims = mdf_reader.return_dimensions_image_data(self.directory_mdf)  
+        
+        # Create histogram and determine min/max image values
+        self.diagram_op.computeHistogramDataBin(self.directory_mdf, 'mdf')    
+        self.diagram_op.drawHistogram()  
+        self.diagram_op.drawLookupTable() 
+        
+        # Values are used to update the value range of the slider widgets
         self.threshold_bolus =  self.diagram_op.threshold_bolus
         self.threshold_roadmap =  self.diagram_op.threshold_roadmap
         self.intervall_bolus =  self.diagram_op.intervall_bolus
-        self.intervall_roadmap =  self.diagram_op.intervall_roadmap        
-        self.vtk_op.min_image_value = min(self.diagram_op.menge)
-        self.vtk_op.max_image_value = max(self.diagram_op.menge)
-        self.vtk_op.threshold_bolus =  self.threshold_bolus
-        self.vtk_op.threshold_roadmap =  self.threshold_roadmap
-        self.vtk_op.intervall_bolus =  self.intervall_bolus
-        self.vtk_op.intervall_roadmap =  self.intervall_roadmap        
-        self.vtk_op.volumePropertyBolus.SetScalarOpacity(self.vtk_op.create_lookup_table('bolus')) 
-        self.vtk_op.volumePropertyRoadmap.SetScalarOpacity(self.vtk_op.create_lookup_table('roadmap'))         
-        self.diagram_op.drawLookupTable()            
-        self.vtk_op.updateColorMap(self.threshold_bolus)
-        self.vtk_op.updateScalarBar()        
+        self.intervall_roadmap =  self.diagram_op.intervall_roadmap     
+        
+        # Create internal look up table for VTK pipeline                  
+        self.vtk_op.initLookupTableSliders(self.diagram_op.min_image_value, 
+                self.diagram_op.max_image_value, self.dims)
+        
+        # Update image count display
         image_count = '1 / '+ str(self.number_of_total_images)        
-        self.image_count_display.setText(image_count)        
-        self.enable_disable_buttons(True)        
+        self.image_count_display.setText(image_count)  
+        
+        # Enable all UI buttons, sliders and checkboxes
+        self.enable_disable_buttons(True)     
+        self.update_status()
         
 def setScreenshotSaveDirectory(self):
     """
@@ -281,13 +291,13 @@ def show_next_image(self):
             self.count = 1           
         if self.format == 'mha':            
             self.temporary_image = \
-            create_VTK_data_from_mha_file(self.directory_source, \
+            mha_reader.create_VTK_data_from_mha_file(self.directory_source, \
                                           self.count, self.interpolation, \
-                                          self.dimension_vtk_data)          
+                                          self.dims)          
         if self.format == 'mdf':            
-            self.temporary_image = create_VTK_data_from_HDF(self.directory_mdf, \
+            self.temporary_image = mdf_reader.create_VTK_data_from_HDF(self.directory_mdf, \
                                      self.count-1, self.interpolation, \
-                                     self.dimension_vtk_data)        
+                                     self.dims)        
         self.vtk_op.volumeMapperBolus.SetInputData(self.temporary_image)         
         if self.roadmap_buildup_checkbox.isChecked(): 
             self.vtk_op.roadmap_buildup(self.temporary_image)    
@@ -312,16 +322,16 @@ def show_previous_image(self):
             self.count = self.number_of_total_images 
             
         if self.format == 'mha':            
-            self.temporary_image = create_VTK_data_from_mha_file(self.directory_source, self.count, self.interpolation, self.dimension_vtk_data)
+            self.temporary_image = mha_reader.create_VTK_data_from_mha_file(self.directory_source, self.count, self.interpolation, self.dims)
             
         if self.format == 'mdf':            
-            self.temporary_image = create_VTK_data_from_HDF(self.directory_mdf, self.count-1, self.interpolation, self.dimension_vtk_data)        
+            self.temporary_image = mdf_reader.create_VTK_data_from_HDF(self.directory_mdf, self.count-1, self.interpolation, self.dims)        
         
         self.vtk_op.volumeMapperBolus.SetInputData(self.temporary_image)     
         
         # Save screenshots of visualized MPI data
         if self.save_images_checkbox.isChecked():
-            self.vtk_op.screenshot_and_save(self)     
+            screenshot_and_save(self)     
         
         self.iren.Initialize()
         self.iren.Start()    
