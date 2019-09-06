@@ -56,7 +56,7 @@ class MainWindow(Qt.QMainWindow):
         
 
         # Create timer in order to constantly update VTK pipeline.
-        # Timer can be paused / started via the QT pause/play button
+        # Timer can be paused / started via the QT pause / play button
         self.timer = Qt.QTimer(self)
         self.timer.setSingleShot(False)
         self.timer.timeout.connect(self.update_status)    

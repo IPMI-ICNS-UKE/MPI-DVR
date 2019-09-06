@@ -6,7 +6,7 @@ Created on Wed Nov  7 16:23:58 2018
 """
 
 import vtk
-from PyQt5 import QtCore
+from PyQt5 import QtCore, QtGui
 from PyQt5 import Qt
 
 import datetime
@@ -26,6 +26,67 @@ import os.path
 This file contains the initUI and the functions directly connected to 
 the display widgets (e.g. buttons, sliders, ...) 
 """
+
+def setCameraOperation(self):
+    le_input = self.line_edit_camera_control.text()
+    i = self.comboBox.currentIndex()
+    
+    if i == 0:   # Set camera pos        
+        try:  
+            coords_str = le_input.split(",")             
+            x = float(coords_str[0])
+            y = float(coords_str[1])
+            z = float(coords_str[2])
+            
+            print(coords_str)
+    
+            self.vtk_op.setCameraPosition(x, y, z)    
+            self.displayPos()    
+            self.iren.Initialize()
+            self.iren.Start()
+        except:
+            print("Put in coordinates in correct form: x,y,z")
+        
+    if i == 1:   # Set focal point 
+        coords_str = le_input.split(",")  
+        try:           
+            x = float(coords_str[0])
+            y = float(coords_str[1])
+            z = float(coords_str[2])           
+            
+            self.vtk_op.setCameraFocalPoint(x, y, z)   
+            
+            self.displayPos()    
+            self.iren.Initialize()
+            self.iren.Start()   
+        except:
+            print("Put in coordinates in correct form: x,y,z")
+        
+    if i == 2: 
+        try: 
+            rotation_angle = int(le_input  )
+            camera = self.vtk_op.ren.GetActiveCamera()
+            camera.Roll(rotation_angle)    
+            self.displayPos()    
+            self.iren.Initialize()
+            self.iren.Start()     
+        except:
+            print("Put in angle rotation in correct form!")
+
+
+
+def placeholder_fill_in(self, i):
+    if i == 0:   # Set camera pos            
+        self.line_edit_camera_control.clear()
+        self.line_edit_camera_control.setPlaceholderText('x, y, z')           
+        
+    if i == 1:   # Set focal point  
+        self.line_edit_camera_control.clear()           
+        self.line_edit_camera_control.setPlaceholderText('x, y, z')           
+        
+    if i == 2:   # Set angle
+        self.line_edit_camera_control.clear()
+        self.line_edit_camera_control.setPlaceholderText('angle [°]')  
 
 def setCameraPosition(self):
     x = int( self.camera_position_x.text() )
@@ -48,10 +109,49 @@ def setCameraFocalPoint(self):
 def rotateCamera(self):     
     rotation_angle = int( self.camera_rotation_angle.text() )
     camera = self.vtk_op.ren.GetActiveCamera()
+    
     camera.Roll(rotation_angle)    
     self.displayPos()    
     self.iren.Initialize()
     self.iren.Start()             
+    
+def interpolate_image_data(self, pressed):
+    if (pressed == True):        
+        x = int( self.interpolation_dim_x.text() )
+        y = int( self.interpolation_dim_y.text() )
+        z = int( self.interpolation_dim_z.text() ) 
+        
+        self.dims = [x, y, z]
+        self.interpolation = True
+        self.vtk_op.dimension_vtk_data = self.dims
+        
+        # Clear old roadmap matrix    )
+        self.vtk_op.adjust_size_roadmap_matrix(self.dims)
+        self.count = self.count - 1
+        self.update_status()
+        
+        #Update image size display
+        image_size_text = str(self.dims[0])+'x'+str(self.dims[1])+'x'+str(self.dims[2])
+        self.display_image_data_size.setText(image_size_text)
+        
+        self.iren.Initialize()
+        self.iren.Start()   
+    else: 
+        self.dims = self.dims_original
+        self.interpolation = False
+        self.vtk_op.dimension_vtk_data = self.dims_original
+        
+        # Resize roadmap matrix    
+        self.vtk_op.adjust_size_roadmap_matrix(self.dims_original)
+        self.count = self.count - 1
+        self.update_status()
+        
+        #Update image size display
+        image_size_text = str(self.dims[0])+'x'+str(self.dims[1])+'x'+str(self.dims[2])
+        self.display_image_data_size.setText(image_size_text)
+        
+        self.iren.Initialize()
+        self.iren.Start()          
         
 def manualLookupTableBolus(self):  
     if self.manual_lookup_table_bolus == None:
@@ -183,6 +283,7 @@ def setMHASourceDirectory(self):
         self.directory_source = fname
         self.number_of_total_images =  mha_reader.get_number_of_image_data(self.directory_source)   
         self.dims = mha_reader.return_dims_of_first_image(self.directory_source) 
+        self.dims_original = self.dims
         
         # Create histogram and determine min/max image values
         self.diagram_op.computeHistogramDataBin(self.directory_source, 'mha')
@@ -199,9 +300,11 @@ def setMHASourceDirectory(self):
         self.vtk_op.initLookupTableSliders(self.diagram_op.min_image_value, 
                 self.diagram_op.max_image_value, self.dims)
         
-        # Update image count display
+        # Update image count and image size display
         image_count = '1 / '+ str(self.number_of_total_images)      
         self.image_count_display.setText(image_count)  
+        image_size_text = str(self.dims[0])+'x'+str(self.dims[1])+'x'+str(self.dims[2])
+        self.display_image_data_size.setText(image_size_text)
         
         # Enable all UI buttons, sliders and checkboxes
         self.enable_disable_buttons(True) 
@@ -219,6 +322,7 @@ def setMDFSourceDirectory(self):
         # Get number of images and image size
         self.number_of_total_images = mdf_reader.get_number_of_images(self.directory_mdf)
         self.dims = mdf_reader.return_dimensions_image_data(self.directory_mdf)  
+        self.dims_original = self.dims
         
         # Create histogram and determine min/max image values
         self.diagram_op.computeHistogramDataBin(self.directory_mdf, 'mdf')    
@@ -235,9 +339,11 @@ def setMDFSourceDirectory(self):
         self.vtk_op.initLookupTableSliders(self.diagram_op.min_image_value, 
                 self.diagram_op.max_image_value, self.dims)
         
-        # Update image count display
+        # Update image count and image size display
         image_count = '1 / '+ str(self.number_of_total_images)        
         self.image_count_display.setText(image_count)  
+        image_size_text = str(self.dims[0])+'x'+str(self.dims[1])+'x'+str(self.dims[2])
+        self.display_image_data_size.setText(image_size_text)
         
         # Enable all UI buttons, sliders and checkboxes
         self.enable_disable_buttons(True)     
@@ -454,13 +560,11 @@ def initUI(self):
     self.previous_image_button.setIcon(self.style().standardIcon(Qt.QStyle.SP_MediaSkipBackward))    
     self.previous_image_button.clicked.connect(partial(show_previous_image, self)  )
 
-    self.label_bolus_slider = Qt.QLabel(self)        
-    self.label_bolus_slider.setText("Threshold Bolus")   
-    self.label_bolus_slider.setFixedWidth(125) 
+    self.label_threshold_slider = Qt.QLabel(self)        
+    self.label_threshold_slider.setText("Threshold")   
+    self.label_threshold_slider.setFixedWidth(125) 
     
-    self.label_roadmap_slider = Qt.QLabel(self)        
-    self.label_roadmap_slider.setText("Threshold Roadmap")  
-    self.label_roadmap_slider.setFixedWidth(125) 
+
     
     self.steepnessRoadmapSlider = Qt.QSlider(self)
     self.steepnessRoadmapSlider.setMinimum(1)
@@ -492,17 +596,13 @@ def initUI(self):
     self.thresholdBolusSlider.setObjectName("ThresholdBolusSlider")
     self.thresholdBolusSlider.valueChanged.connect(partial(functionThresholdBolusSlider, self) )        
     
-    self.label_opacity_bolus_slider = Qt.QLabel(self)        
-    self.label_opacity_bolus_slider.setText("Opacity Bolus");   
-    self.label_opacity_bolus_slider.setFixedWidth(125) 
+    self.label_opacity_slider = Qt.QLabel(self)        
+    self.label_opacity_slider.setText("Opacity");   
+    self.label_opacity_slider.setFixedWidth(125) 
     
-    self.label_steepness_bolus_slider = Qt.QLabel(self)        
-    self.label_steepness_bolus_slider.setText("Steepness Bolus");   
-    self.label_steepness_bolus_slider.setFixedWidth(125) 
-    
-    self.label_steepness_roadmap_slider = Qt.QLabel(self)        
-    self.label_steepness_roadmap_slider.setText("Steepness Roadmap");   
-    self.label_steepness_roadmap_slider.setFixedWidth(125) 
+    self.label_steepness_ramp = Qt.QLabel(self)        
+    self.label_steepness_ramp.setText("Steepness ramp");   
+    self.label_steepness_ramp.setFixedWidth(125)    
     
     self.volumeOpacityBolus = Qt.QSlider(self)
     self.volumeOpacityBolus.setMaximum(100)
@@ -510,10 +610,7 @@ def initUI(self):
     self.volumeOpacityBolus.setOrientation(QtCore.Qt.Horizontal)
     self.volumeOpacityBolus.setObjectName("volumeOpacityBolus")     
     self.volumeOpacityBolus.valueChanged.connect(partial(functionOpacityBolusSlider, self))    
-    
-    self.label_opacity_roadmap_slider = Qt.QLabel(self)        
-    self.label_opacity_roadmap_slider.setText("Opacity Roadmap");   
-    self.label_opacity_roadmap_slider.setFixedWidth(125)     
+
     
     self.volumeOpacityRoadmap = Qt.QSlider(self)
     self.volumeOpacityRoadmap.setMaximum(100)
@@ -551,66 +648,85 @@ def initUI(self):
     self.label_camera_operations.setWordWrap(True)
     self.label_camera_operations.setAlignment(Qt.Qt.AlignCenter)
     
-    self.label_text_above_sliders = Qt.QLabel()
-    self.label_text_above_sliders.setText("Quick control lookup table")
-    self.label_text_above_sliders.setStyleSheet('color: grey')
-    self.label_text_above_sliders.setWordWrap(True)
-    self.label_text_above_sliders.setAlignment(Qt.Qt.AlignCenter)
+    self.label_manual_defintion_lookup_table = Qt.QLabel()
+    self.label_manual_defintion_lookup_table.setText("Manual definition")  
+    self.label_manual_defintion_lookup_table.setWordWrap(True)   
+    
+    self.label_text_above_bolus_slider = Qt.QLabel()
+    self.label_text_above_bolus_slider.setText("Bolus")
+    self.label_text_above_bolus_slider.setStyleSheet('color: grey')    
+    self.label_text_above_bolus_slider.setAlignment(Qt.Qt.AlignCenter)
+    
+    self.label_text_above_roadmap_slider = Qt.QLabel()
+    self.label_text_above_roadmap_slider.setText("Roadmap")
+    self.label_text_above_roadmap_slider.setStyleSheet('color: grey')    
+    self.label_text_above_roadmap_slider.setAlignment(Qt.Qt.AlignCenter)
+    
+    self.label_text_above_image_data = Qt.QLabel()
+    self.label_text_above_image_data.setText("Image data")
+    self.label_text_above_image_data.setStyleSheet('color: grey')    
+    self.label_text_above_image_data.setAlignment(Qt.Qt.AlignCenter)
     
     self.label_text_above_playback_settings = Qt.QLabel()
     self.label_text_above_playback_settings.setText("Playback control")
     self.label_text_above_playback_settings.setStyleSheet('color: grey')
     self.label_text_above_playback_settings.setWordWrap(True)
-    self.label_text_above_playback_settings.setAlignment(Qt.Qt.AlignCenter)    
+    self.label_text_above_playback_settings.setAlignment(Qt.Qt.AlignCenter)       
     
-    self.btn_set_camera_position = Qt.QPushButton('Dialog', self)
-    self.btn_set_camera_position.move(20, 20)   
-    self.btn_set_camera_position.clicked.connect(partial(setCameraPosition, self))
-    self.btn_set_camera_position.setText("Set Camera Position")
+    self.interpolation_dim_x = Qt.QLineEdit(self)
+    self.validator_interpolation_dim_x = Qt.QIntValidator()
+    self.interpolation_dim_x.setPlaceholderText('x')
+    self.interpolation_dim_x.setValidator(self.validator_interpolation_dim_x)
     
-    self.camera_position_x = Qt.QLineEdit(self)
-    self.validator_camera_position_x = Qt.QIntValidator()
-    self.camera_position_x.setValidator(self.validator_camera_position_x)
+    self.interpolation_dim_y = Qt.QLineEdit(self)
+    self.validator_interpolation_dim_y = Qt.QIntValidator()
+    self.interpolation_dim_y.setPlaceholderText('y')
+    self.interpolation_dim_y.setValidator(self.validator_interpolation_dim_y)
     
-    self.camera_position_y = Qt.QLineEdit(self)
-    self.validator_camera_position_y = Qt.QIntValidator()
-    self.camera_position_y.setValidator(self.validator_camera_position_y)
+    self.interpolation_dim_z = Qt.QLineEdit(self)
+    self.validator_interpolation_dim_z = Qt.QIntValidator()
+    self.interpolation_dim_z.setPlaceholderText('z')
+    self.interpolation_dim_z.setValidator(self.validator_interpolation_dim_z)    
     
-    self.camera_position_z = Qt.QLineEdit(self)
-    self.validator_camera_position_z = Qt.QIntValidator()
-    self.camera_position_z.setValidator(self.validator_camera_position_z)    
+    self.label_x_1 = Qt.QLabel()
+    self.label_x_1.setText('x')
+    self.label_x_1.setAlignment(Qt.Qt.AlignCenter)
     
-    self.btn_set_camera_focal_point = Qt.QPushButton('Dialog', self)
-    self.btn_set_camera_focal_point.move(20, 20)   
-    self.btn_set_camera_focal_point.clicked.connect(partial(setCameraFocalPoint, self))
-    self.btn_set_camera_focal_point.setText("Set Camera Focal Point")
+    self.label_x_2 = Qt.QLabel()
+    self.label_x_2.setText('x')
+    self.label_x_2.setAlignment(Qt.Qt.AlignCenter)
     
-    self.camera_focal_point_x = Qt.QLineEdit(self)
-    self.validator_camera_focal_point_x = Qt.QIntValidator()
-    self.camera_focal_point_x.setValidator(self.validator_camera_focal_point_x)
+    self.set_interpolation_dims = Qt.QPushButton('Dialog', self)
+    self.set_interpolation_dims.setCheckable(True)          
+    self.set_interpolation_dims.clicked[bool].connect(partial(interpolate_image_data, self))
+    self.set_interpolation_dims.setText("Activate interpolation")  
     
-    self.camera_focal_point_y = Qt.QLineEdit(self)
-    self.validator_camera_focal_point_y = Qt.QIntValidator()
-    self.camera_focal_point_y.setValidator(self.validator_camera_focal_point_y)
+    self.btn_set_camera_operation = Qt.QPushButton('Dialog', self)   
+    self.btn_set_camera_operation.clicked.connect(partial(setCameraOperation, self))
+    self.btn_set_camera_operation.setText("SET")   
     
-    self.camera_focal_point_z = Qt.QLineEdit(self)
-    self.validator_camera_focal_point_z = Qt.QIntValidator()
-    self.camera_focal_point_z.setValidator(self.validator_camera_focal_point_z)   
+    self.line_edit_camera_control = Qt.QLineEdit(self)
+    self.line_edit_camera_control.setPlaceholderText('x, y, z')  
     
-    self.camera_rotation_angle = Qt.QLineEdit(self)
-    self.validator_camera_rotation_angle = Qt.QIntValidator()
-    self.camera_rotation_angle.setValidator(self.validator_camera_rotation_angle)
+    self.label_image_data_size = Qt.QLabel(self)
+    self.label_image_data_size.setText("Current image data size:  ")
+        
+    self.display_image_data_size = Qt.QLabel(self)
+    self.display_image_data_size.setText("-")
+    self.display_image_data_size.setStyleSheet("background-color: rgba(255, 255, 255, 100%)")
     
-    self.btn_camera_rotate = Qt.QPushButton('Dialog', self)
-    self.btn_camera_rotate.move(20, 20)   
-    self.btn_camera_rotate.clicked.connect(partial(rotateCamera, self))
-    self.btn_camera_rotate.setText("Rotate [°]")   
+    self.comboBox = Qt.QComboBox()
+    self.comboBox.addItem("Set camera position")
+    self.comboBox.addItem("Set camera focal point")
+    self.comboBox.addItem("Set rotation angle")
+    self.comboBox.currentIndexChanged.connect(partial(placeholder_fill_in, self))
+    
 
     """
     The following lines define the spatial relation of the defined QT widgets 
     along horizontal and vertical axes (--> Qt.QHBoxLayout / Qt.QVBoxLayout)
     """
-    
+
     self.hl_load_buttons = Qt.QHBoxLayout()
     self.hl_load_buttons.addWidget(self.button_load_mha_files)
     self.hl_load_buttons.addWidget(self.button_load_mdf_file)    
@@ -632,63 +748,62 @@ def initUI(self):
     self.hl_playback_settings.addWidget(self.placeholder)   
     self.hl_playback_settings.addWidget(self.previous_image_button)
     self.hl_playback_settings.addWidget(self.start_stop_button)
-    self.hl_playback_settings.addWidget(self.next_image_button)    
-    
-    self.hl_threshold_bolus = Qt.QHBoxLayout()
-    self.hl_threshold_bolus.addWidget(self.label_bolus_slider)
-    self.hl_threshold_bolus.addWidget(self.thresholdBolusSlider)    
-    
-    self.hl_threshold_roadmap = Qt.QHBoxLayout()
-    self.hl_threshold_roadmap.addWidget(self.label_roadmap_slider)
-    self.hl_threshold_roadmap.addWidget(self.thresholdRoadmapSlider)    
-    
-    self.hl_opacity_bolus_slider = Qt.QHBoxLayout()
-    self.hl_opacity_bolus_slider.addWidget(self.label_opacity_bolus_slider)
-    self.hl_opacity_bolus_slider.addWidget(self.volumeOpacityBolus)    
-    
-    self.hl_opacity_roadmap_slider = Qt.QHBoxLayout()
-    self.hl_opacity_roadmap_slider.addWidget(self.label_opacity_roadmap_slider)
-    self.hl_opacity_roadmap_slider.addWidget(self.volumeOpacityRoadmap)    
-    
-    self.hl_steepness_bolus_slider = Qt.QHBoxLayout()
-    self.hl_steepness_bolus_slider.addWidget(self.label_steepness_bolus_slider)
-    self.hl_steepness_bolus_slider.addWidget(self.steepnessBolusSlider)      
-    
-    self.hl_steepness_roadmap_slider = Qt.QHBoxLayout()
-    self.hl_steepness_roadmap_slider.addWidget(self.label_steepness_roadmap_slider)
-    self.hl_steepness_roadmap_slider.addWidget(self.steepnessRoadmapSlider)     
+    self.hl_playback_settings.addWidget(self.next_image_button)       
+
     
     self.hl_playback_speed = Qt.QHBoxLayout()
     self.hl_playback_speed.addWidget(self.label_playback_speed)
     self.hl_playback_speed.addWidget(self.playbackSpeedSlider)    
+ 
+
+  
+    self.grid_camera_operations = Qt.QGridLayout()    
+    self.grid_camera_operations.addWidget(self.comboBox, 1, 1, 1, 3)
+    self.grid_camera_operations.addWidget(self.line_edit_camera_control, 1, 4, 1, 2)
+    self.grid_camera_operations.addWidget(self.btn_set_camera_operation, 1, 6, 1, 3)   
+
+    
+    
+    
     
     self.hl_manual_lookup_tables = Qt.QHBoxLayout()
     self.hl_manual_lookup_tables.addWidget(self.btn_activate_manual_lookup_table_bolus)
-    self.hl_manual_lookup_tables.addWidget(self.btn_activate_manual_lookup_table_roadmap)     
+    self.hl_manual_lookup_tables.addWidget(self.btn_activate_manual_lookup_table_roadmap)   
     
-    self.hl_set_camera_position = Qt.QHBoxLayout()
-    self.hl_set_camera_position.addWidget(self.camera_position_x)
-    self.hl_set_camera_position.addWidget(self.camera_position_y)
-    self.hl_set_camera_position.addWidget(self.camera_position_z) 
-    self.hl_set_camera_position.addWidget(self.btn_set_camera_position)    
     
-    self.hl_set_camera_focal_point = Qt.QHBoxLayout()
-    self.hl_set_camera_focal_point.addWidget(self.camera_focal_point_x)
-    self.hl_set_camera_focal_point.addWidget(self.camera_focal_point_y)
-    self.hl_set_camera_focal_point.addWidget(self.camera_focal_point_z) 
-    self.hl_set_camera_focal_point.addWidget(self.btn_set_camera_focal_point)  
-  
-    self.grid_camera_operations = Qt.QGridLayout()    
-    self.grid_camera_operations.addWidget(self.camera_position_x, 1, 2)
-    self.grid_camera_operations.addWidget(self.camera_position_y, 1, 3)
-    self.grid_camera_operations.addWidget(self.camera_position_z, 1, 4)
-    self.grid_camera_operations.addWidget(self.btn_set_camera_position, 1, 1)    
-    self.grid_camera_operations.addWidget(self.camera_focal_point_x, 2, 2)
-    self.grid_camera_operations.addWidget(self.camera_focal_point_y, 2, 3)
-    self.grid_camera_operations.addWidget(self.camera_focal_point_z, 2, 4)
-    self.grid_camera_operations.addWidget(self.btn_set_camera_focal_point, 2, 1)    
-    self.grid_camera_operations.addWidget(self.btn_camera_rotate, 3, 1)
-    self.grid_camera_operations.addWidget(self.camera_rotation_angle, 3, 2)    
+    self.slider_block = Qt.QGridLayout()    
+    self.slider_block.addWidget(self.label_text_above_bolus_slider, 1, 2, 1, 2)
+    self.slider_block.addWidget(self.label_text_above_roadmap_slider, 1, 4, 1, 2)
+    
+    self.slider_block.addWidget(self.label_threshold_slider, 4, 1)
+    self.slider_block.addWidget(self.thresholdBolusSlider, 4, 2, 2, 2)
+    self.slider_block.addWidget(self.thresholdRoadmapSlider, 4, 4, 2, 2)
+       
+    self.slider_block.addWidget(self.label_opacity_slider, 6, 1)
+    self.slider_block.addWidget(self.volumeOpacityBolus, 6, 2, 2,2)
+    self.slider_block.addWidget(self.volumeOpacityRoadmap, 6, 4, 2, 2)
+    
+    self.slider_block.addWidget(self.label_steepness_ramp, 8, 1)    
+    self.slider_block.addWidget(self.steepnessBolusSlider, 8, 2, 2, 2)
+    self.slider_block.addWidget(self.steepnessRoadmapSlider, 8, 4, 2, 2) 
+    
+    self.slider_block.addWidget(self.label_manual_defintion_lookup_table, 10, 1)    
+    self.slider_block.addWidget(self.btn_activate_manual_lookup_table_bolus, 10, 2, 1, 2)
+    self.slider_block.addWidget(self.btn_activate_manual_lookup_table_roadmap, 10, 4, 1, 2)    
+
+
+    
+    self.hl_image_specs = Qt.QHBoxLayout()
+    self.hl_image_specs.addWidget(self.label_image_data_size)
+    self.hl_image_specs.addWidget(self.display_image_data_size, stretch=3)
+    self.hl_image_specs.addWidget(self.placeholder)
+    self.hl_image_specs.addWidget(self.set_interpolation_dims)    
+    self.hl_image_specs.addWidget(self.interpolation_dim_x, stretch=1)
+    self.hl_image_specs.addWidget(self.label_x_1, stretch=0.5)
+    self.hl_image_specs.addWidget(self.interpolation_dim_y, stretch=1)
+    self.hl_image_specs.addWidget(self.label_x_2, stretch=0.5)
+    self.hl_image_specs.addWidget(self.interpolation_dim_z, stretch=1)
+    
     
     # Definition of the vertical and horizontal main axis    
     self.vl_main = Qt.QVBoxLayout()    
@@ -699,22 +814,21 @@ def initUI(self):
     self.vl_main.addLayout(self.hl_load_buttons)
     self.vl_main.addLayout(self.hl_checkboxes)
     self.vl_main.addWidget(self.diagram_op.canvas)
+    self.vl_main.addWidget(self.label_text_above_image_data)    
+    self.vl_main.addLayout(self.hl_image_specs)
+    self.vl_main.addWidget(self.placeholder)
+    
     self.vl_main.addWidget(self.label_text_above_playback_settings)
     self.vl_main.addLayout(self.hl_playback_settings) 
     self.vl_main.addLayout(self.hl_playback_speed)
     self.vl_main.addWidget(self.placeholder)         
-    self.vl_main.addWidget(self.label_text_above_sliders)
-    self.vl_main.addLayout(self.hl_threshold_bolus)
-    self.vl_main.addLayout(self.hl_threshold_roadmap)
-    self.vl_main.addLayout(self.hl_opacity_bolus_slider)
-    self.vl_main.addLayout(self.hl_opacity_roadmap_slider)
-    self.vl_main.addLayout(self.hl_steepness_bolus_slider)  
-    self.vl_main.addLayout(self.hl_steepness_roadmap_slider)  
-    self.vl_main.addWidget(self.placeholder)    
-    self.vl_main.addLayout(self.hl_manual_lookup_tables)
-    self.vl_main.addWidget(self.placeholder)
+
+    self.vl_main.addLayout(self.slider_block)
+    self.vl_main.addWidget(self.placeholder)       
+  
     self.vl_main.addWidget(self.label_camera_operations)   
-    self.vl_main.addLayout(self.grid_camera_operations)    
+    self.vl_main.addLayout(self.grid_camera_operations) 
+
     
     # Alignment along horizontal main axis   
     self.hl_main.addLayout(self.vl_main, stretch=1 )

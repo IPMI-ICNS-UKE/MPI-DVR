@@ -20,10 +20,10 @@ class vtk_pipeline:
         # Defintion of visualization parameters 
         self.opacity_max_bolus = 0.5
         self.opacity_max_roadmap = 0.5
-        self.threshold_bolus = 20.0
-        self.threshold_roadmap = 20.0
-        self.intervall_bolus = 100.0
-        self.intervall_roadmap = 100.0
+        self.threshold_bolus = 0.0
+        self.threshold_roadmap = 0.0
+        self.intervall_bolus = 1.0
+        self.intervall_roadmap = 1.0
         self.min_image_value = 0
         self.max_image_value = 100
         self.dimension_vtk_data = [50, 50, 50]
@@ -422,6 +422,7 @@ class vtk_pipeline:
     def roadmap_buildup(self, temporary_image):
                          
         self.imageData1 = vtk.vtkImageData()
+       
         
         self.imageData1.SetDimensions(temporary_image.GetDimensions()[0], \
                  temporary_image.GetDimensions()[1],  \
@@ -455,6 +456,45 @@ class vtk_pipeline:
         
     
         self.volumeMapperRoadmap.SetInputData(self.imageData1)    
+    
+    def adjust_size_roadmap_matrix(self, dims):
+        imageData1 = vtk.vtkImageData()
+        imageData1.SetDimensions(self.x.shape)        
+        imageData1.AllocateScalars(vtk.VTK_DOUBLE, 1)    
+        
+        
+        
+        dims_old = self.x.shape
+        for z in range(dims_old[2]):
+            for y in range(dims_old[1]):
+                for x in range(dims_old[0]):   
+                    iv = self.x[x,y,z]
+                    imageData1.SetScalarComponentFromDouble(x, y, z, 0, iv)
+        
+        
+        
+                  
+        resize = vtk.vtkImageResize()
+        resize.SetInputData(imageData1)
+        resize.SetOutputDimensions(dims[0],dims[1],dims[2])
+        resize.Update()
+        imageData1 = resize.GetOutput()
+        
+        self.x = np.zeros((dims[0], dims[1], dims[2]))
+        
+        print("2")
+        
+        for z in range(dims[2]):
+            for y in range(dims[1]):
+                for x in range(dims[0]):   
+                    
+                    iv = imageData1.GetScalarComponentAsDouble(x, y, z, 0)
+                    self.x[x,y,z] = iv
+        
+        
+        self.volumeMapperRoadmap.SetInputData(self.imageData1)  
+        
+        
     
     def create_empty_image_data(self):
         
