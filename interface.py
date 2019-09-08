@@ -29,7 +29,7 @@ the display widgets (e.g. buttons, sliders, ...)
 
 def setCameraOperation(self):
     le_input = self.line_edit_camera_control.text()
-    i = self.comboBox.currentIndex()
+    i = self.combo_box_camera.currentIndex()
     
     if i == 0:   # Set camera pos        
         try:  
@@ -73,8 +73,6 @@ def setCameraOperation(self):
         except:
             print("Put in angle rotation in correct form!")
 
-
-
 def placeholder_fill_in(self, i):
     if i == 0:   # Set camera pos            
         self.line_edit_camera_control.clear()
@@ -115,7 +113,7 @@ def rotateCamera(self):
     self.iren.Initialize()
     self.iren.Start()             
     
-def interpolate_image_data(self, pressed):
+def interpolateImageData(self, pressed):
     if (pressed == True):        
         x = int( self.interpolation_dim_x.text() )
         y = int( self.interpolation_dim_y.text() )
@@ -125,12 +123,12 @@ def interpolate_image_data(self, pressed):
         self.interpolation = True
         self.vtk_op.dimension_vtk_data = self.dims
         
-        # Clear old roadmap matrix    )
-        self.vtk_op.adjust_size_roadmap_matrix(self.dims)
+        
+        self.vtk_op.adjust_size_roadmap(self.dims)
         self.count = self.count - 1
         self.update_status()
         
-        #Update image size display
+        #Update image size text display
         image_size_text = str(self.dims[0])+'x'+str(self.dims[1])+'x'+str(self.dims[2])
         self.display_image_data_size.setText(image_size_text)
         
@@ -275,7 +273,7 @@ def setPlaybackSpeed1(self, t):
         if not self.start_stop_button.isChecked(): 
             self.timer.stop()        
     
-def setMHASourceDirectory(self):        
+def loadMHA(self):        
     fname = Qt.QFileDialog.getExistingDirectory(self, 'Open file', 'c:\\')        
     name = fname + "/1.mha"     
     if os.path.isfile(name):
@@ -297,7 +295,7 @@ def setMHASourceDirectory(self):
         self.intervall_roadmap =  self.diagram_op.intervall_roadmap       
           
         # Create internal look up table for VTK pipeline                       
-        self.vtk_op.initLookupTableSliders(self.diagram_op.min_image_value, 
+        self.vtk_op.updateVTKparameters(self.diagram_op.min_image_value, 
                 self.diagram_op.max_image_value, self.dims)
         
         # Update image count and image size display
@@ -307,13 +305,13 @@ def setMHASourceDirectory(self):
         self.display_image_data_size.setText(image_size_text)
         
         # Enable all UI buttons, sliders and checkboxes
-        self.enable_disable_buttons(True) 
+        self.enableDisableButtons(True) 
         self.update_status()
     else: 
         print("Use valid directory")    
     
 
-def setMDFSourceDirectory(self):    
+def loadMDF(self):    
     fname = Qt.QFileDialog.getOpenFileName(self, 'c:\\')[0]       
     if fname != '':
         self.format = 'mdf'
@@ -336,7 +334,7 @@ def setMDFSourceDirectory(self):
         self.intervall_roadmap =  self.diagram_op.intervall_roadmap     
         
         # Create internal look up table for VTK pipeline                  
-        self.vtk_op.initLookupTableSliders(self.diagram_op.min_image_value, 
+        self.vtk_op.updateVTKparameters(self.diagram_op.min_image_value, 
                 self.diagram_op.max_image_value, self.dims)
         
         # Update image count and image size display
@@ -346,7 +344,7 @@ def setMDFSourceDirectory(self):
         self.display_image_data_size.setText(image_size_text)
         
         # Enable all UI buttons, sliders and checkboxes
-        self.enable_disable_buttons(True)     
+        self.enableDisableButtons(True)     
         self.update_status()
         
 def setScreenshotSaveDirectory(self):
@@ -502,10 +500,10 @@ def initUI(self):
     self.placeholder = Qt.QLabel()
     
     self.button_load_mha_files = Qt.QPushButton('Load .mha files', self)           
-    self.button_load_mha_files.clicked.connect(partial(setMHASourceDirectory, self))  
+    self.button_load_mha_files.clicked.connect(partial(loadMHA, self))  
     
     self.button_load_mdf_file = Qt.QPushButton('Load .mdf file', self)           
-    self.button_load_mdf_file.clicked.connect(partial(setMDFSourceDirectory, self))      
+    self.button_load_mdf_file.clicked.connect(partial(loadMDF, self))      
         
     self.frame_rate_label = Qt.QLabel(self)
     self.frame_rate_label.setText("Frame rate:  ")
@@ -698,7 +696,7 @@ def initUI(self):
     
     self.set_interpolation_dims = Qt.QPushButton('Dialog', self)
     self.set_interpolation_dims.setCheckable(True)          
-    self.set_interpolation_dims.clicked[bool].connect(partial(interpolate_image_data, self))
+    self.set_interpolation_dims.clicked[bool].connect(partial(interpolateImageData, self))
     self.set_interpolation_dims.setText("Activate interpolation")  
     
     self.btn_set_camera_operation = Qt.QPushButton('Dialog', self)   
@@ -715,11 +713,11 @@ def initUI(self):
     self.display_image_data_size.setText("-")
     self.display_image_data_size.setStyleSheet("background-color: rgba(255, 255, 255, 100%)")
     
-    self.comboBox = Qt.QComboBox()
-    self.comboBox.addItem("Set camera position")
-    self.comboBox.addItem("Set camera focal point")
-    self.comboBox.addItem("Set rotation angle")
-    self.comboBox.currentIndexChanged.connect(partial(placeholder_fill_in, self))
+    self.combo_box_camera = Qt.QComboBox()
+    self.combo_box_camera.addItem("Set camera position")
+    self.combo_box_camera.addItem("Set camera focal point")
+    self.combo_box_camera.addItem("Set rotation angle")
+    self.combo_box_camera.currentIndexChanged.connect(partial(placeholder_fill_in, self))
     
 
     """
@@ -733,12 +731,14 @@ def initUI(self):
     self.hl_load_buttons.addWidget(self.button_saving_directory_screenshots)    
     self.hl_load_buttons.addWidget(self.button_save_roadmap) 
     
+    
     self.hl_checkboxes = Qt.QHBoxLayout()
     self.hl_checkboxes.addWidget(self.save_images_checkbox)
     self.hl_checkboxes.addWidget(self.checkbox_FOV)
     self.hl_checkboxes.addWidget(self.roadmap_buildup_checkbox)
     self.hl_checkboxes.addWidget(self.checkbox_scalar_bar)
-    self.hl_checkboxes.addWidget(self.checkbox_camera_specifications)    
+    self.hl_checkboxes.addWidget(self.checkbox_camera_specifications)
+    
     
     self.hl_playback_settings = Qt.QHBoxLayout()
     self.hl_playback_settings.addWidget(self.image_count_label)
@@ -755,15 +755,11 @@ def initUI(self):
     self.hl_playback_speed.addWidget(self.label_playback_speed)
     self.hl_playback_speed.addWidget(self.playbackSpeedSlider)    
  
-
   
     self.grid_camera_operations = Qt.QGridLayout()    
-    self.grid_camera_operations.addWidget(self.comboBox, 1, 1, 1, 3)
+    self.grid_camera_operations.addWidget(self.combo_box_camera, 1, 1, 1, 3)
     self.grid_camera_operations.addWidget(self.line_edit_camera_control, 1, 4, 1, 2)
-    self.grid_camera_operations.addWidget(self.btn_set_camera_operation, 1, 6, 1, 3)   
-
-    
-    
+    self.grid_camera_operations.addWidget(self.btn_set_camera_operation, 1, 6, 1, 3)       
     
     
     self.hl_manual_lookup_tables = Qt.QHBoxLayout()
@@ -809,6 +805,7 @@ def initUI(self):
     self.vl_main = Qt.QVBoxLayout()    
     self.hl_main = Qt.QHBoxLayout()      
     self.frame.setLayout(self.hl_main)
+    
     
     # Align all widgets or horizontal layouts along the vertical main axis 
     self.vl_main.addLayout(self.hl_load_buttons)

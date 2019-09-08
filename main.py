@@ -83,7 +83,7 @@ class MainWindow(Qt.QMainWindow):
        
         # Disable all interface widgets until source data is successfully loaded 
         # (except load buttons)
-        self.enable_disable_buttons(False)        
+        self.enableDisableButtons(False)        
         self.button_load_mdf_file.setEnabled(True)
         self.button_load_mha_files.setEnabled(True)
         self.button_saving_directory_screenshots.setEnabled(True)        
@@ -149,13 +149,13 @@ class MainWindow(Qt.QMainWindow):
             + str( round(pos[2], 1)) + ' \nFocal point: ' + str( round(fp[0], 1)) + ', '  \
             + str( round(fp[1], 1)) + ', ' \
             + str( round(fp[2], 1))         
-        self.vtk_op.textActor.SetInput( text )
-        self.vtk_op.textActor.SetPosition ( 20, 20 )
-        self.vtk_op.textActor.GetTextProperty().SetFontSize (24 )
-        self.vtk_op.textActor.GetTextProperty().SetColor ( 0.8, 0.8, 0.8 )
-        self.vtk_op.textActor.GetTextProperty().SetOpacity ( 0.8)
+        self.vtk_op.text_actor.SetInput( text )
+        self.vtk_op.text_actor.SetPosition ( 20, 20 )
+        self.vtk_op.text_actor.GetTextProperty().SetFontSize (24 )
+        self.vtk_op.text_actor.GetTextProperty().SetColor ( 0.8, 0.8, 0.8 )
+        self.vtk_op.text_actor.GetTextProperty().SetOpacity ( 0.8)
     
-    def enable_disable_buttons(self, bool_value):
+    def enableDisableButtons(self, bool_value):
         for i in self.findChildren(Qt.QPushButton):
             i.setEnabled(bool_value)            
         for i in self.findChildren(Qt.QCheckBox):

@@ -9,8 +9,6 @@ Created on Wed Nov  7 16:23:58 2018
 import mha_reader
 import mdf_reader 
 
-import itertools
-
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 
@@ -27,7 +25,7 @@ class plotDiagrams:
         #self.ax2.set_ylabel(r"Opacity", fontsize=16, color="darkgreen")
         self.ax2 = self.figure.add_subplot(212)          
         self.canvas.draw()     
-        self.menge = []
+        self.data_bin = []
         self.opacity_max_bolus = 0.5
         self.opacity_max_roadmap = 0.5
         self.threshold_bolus = 20.0
@@ -58,10 +56,10 @@ class plotDiagrams:
 
     def drawHistogram(self):                
         self.ax.clear()
-        self.ax.set_xlim( min(self.menge), max(self.menge)  )
+        self.ax.set_xlim( min(self.data_bin), max(self.data_bin)  )
         self.ax.set_yscale('log')
         
-        self.ax.hist(self.menge, bins=40)        
+        self.ax.hist(self.data_bin, bins=40)        
         
         self.ax.plot()
     
@@ -73,23 +71,18 @@ class plotDiagrams:
         """
         This function gathers image values of the dataset in order 
         to create a data bin that is used for histogram visualization. 
-        """
-        
-       
-        menge = []   
+        """       
+        self.data_bin = []   
         
         if mode == 'mdf':                        
-            menge = mdf_reader.return_data_array(directory)        
+            self.data_bin = mdf_reader.return_data_array(directory)        
            
         if mode == 'mha':  
-            menge = mha_reader.return_data_array(directory)
+            self.data_bin = mha_reader.return_data_array(directory)
 
-                
-  
-        self.menge = menge
         
-        self.max_image_value  = max(self.menge)
-        self.min_image_value = min(self.menge)
+        self.max_image_value  = max(self.data_bin)
+        self.min_image_value = min(self.data_bin)
         self.total_image_value_range = self.max_image_value - self.min_image_value
         
         self.threshold_bolus =  self.total_image_value_range / 2.0
