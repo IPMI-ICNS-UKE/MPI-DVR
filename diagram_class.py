@@ -6,13 +6,15 @@ Created on Wed Nov  7 16:23:58 2018
 
 @author: domdo
 """
-import mha_reader
-import mdf_reader 
-
+ 
+# External libraries
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
-
 import numpy as np
+
+# Own functions 
+import mha_reader
+import mdf_reader
 
 
 class plotDiagrams:
@@ -21,9 +23,11 @@ class plotDiagrams:
         self.figure.set_size_inches(9, 5.5)
         self.canvas = FigureCanvas(self.figure)       
         self.ax = self.figure.add_subplot(211,yscale='log')    
-        #self.ax2 = self.ax.twinx()
-        #self.ax2.set_ylabel(r"Opacity", fontsize=16, color="darkgreen")
-        self.ax2 = self.figure.add_subplot(212)          
+        self.ax.set_ylabel("Count", fontsize=16, color="grey")
+        
+        self.ax2 = self.figure.add_subplot(212)     
+        self.ax2.set_ylabel("Opacity", fontsize=16, color="grey")
+        self.ax2.set_xlabel("Image value", fontsize=16, color="grey")
         self.canvas.draw()     
         self.data_bin = []
         self.opacity_max_bolus = 0.5

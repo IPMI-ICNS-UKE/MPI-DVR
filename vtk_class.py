@@ -8,7 +8,7 @@ Created on Wed Nov  7 16:23:58 2018
 
 @author: domdo
 """
-
+# External libraries
 import vtk
 import numpy as np
 
@@ -51,7 +51,10 @@ class vtk_pipeline:
        
          
         # VTK writer to save mha roadmap file
-        self.writer = vtk.vtkMetaImageWriter()       
+        self.writer_roadmap = vtk.vtkMetaImageWriter()       
+        
+         
+  
         
         
         
@@ -104,9 +107,10 @@ class vtk_pipeline:
         self.scalar_bar_actor = self.create_color_scalar_bar()        
            
         self.text_actor = vtk.vtkTextActor()                
-        self.text_actor.GetTextProperty().SetFontSize ( 50)
-        self.text_actor.GetTextProperty().SetColor ( 1.0, 0.0, 0.0 )
-        self.text_actor.GetTextProperty().SetOpacity ( 0.8)        
+        self.text_actor.SetPosition ( 20, 20 )
+        self.text_actor.GetTextProperty().SetFontSize (24 )
+        self.text_actor.GetTextProperty().SetColor ( 0.8, 0.8, 0.8 )
+        self.text_actor.GetTextProperty().SetOpacity ( 0.8)    
         
         # Setup renderer
         self.ren = vtk.vtkRenderer()   
@@ -392,7 +396,16 @@ class vtk_pipeline:
         camera = self.ren.GetActiveCamera()
         camera.SetFocalPoint(x_pos, y_pos, z_pos)
 
-    
+    def saveScreenshot(self, string_directory):               
+        self.w2if = vtk.vtkWindowToImageFilter()
+        self.w2if.SetInput(self.vtk_widget.GetRenderWindow())
+        self.w2if.Update() 
+        
+        self.writer_screenshot = vtk.vtkPNGWriter()               
+        self.writer_screenshot.SetInputConnection(self.w2if.GetOutputPort())                
+        self.writer_screenshot.SetFileName(string_directory)        
+        self.writer_screenshot.SetInputConnection(self.w2if.GetOutputPort())           
+        self.writer_screenshot.Write()     
 
    
 

@@ -1,18 +1,13 @@
-from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QAction, QTableWidget,QTableWidgetItem,QVBoxLayout
-from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import pyqtSlot
-import sys
+# External libraries
+from PyQt5.QtWidgets import QTableWidget,QTableWidgetItem
 from PyQt5 import Qt
-
-
 
  
 class TableView(Qt.QMainWindow):
-    def __init__(self, parent, mode, *args):
+    def __init__(self, parent, mode, lookup_table, *args):
         super(TableView, self).__init__(parent)         
         
-        self.currentData = mode
-        
+        self.currentData = mode        
         self.image_values = [0, 1]
         self.opacity_values = [0, 1]
         self.lookup_table_matrix = list(zip(self.image_values, self.opacity_values))
@@ -24,7 +19,9 @@ class TableView(Qt.QMainWindow):
         self.table1.resizeRowsToContents()        
         self.table1.itemChanged.connect(self.item_changed)   
         
-        
+        if (lookup_table != None):
+            self.lookup_table_matrix = lookup_table
+            self.buildupLookupTableFromLookmatrix()  
         
         
         # Initiation of button widgets and box layout  
@@ -37,8 +34,8 @@ class TableView(Qt.QMainWindow):
         self.button_add_row = Qt.QPushButton('Add entry')
         self.button_add_row.clicked.connect(self.addRow)
         
-        self.table_label = Qt.QLabel()
-        self.table_label.setText('Lookup table ' + mode)
+        self.label_table = Qt.QLabel()
+        self.label_table.setText('Lookup table ' + mode)
         
         self.frame = Qt.QFrame()  
         self.vl = Qt.QVBoxLayout()
@@ -50,7 +47,7 @@ class TableView(Qt.QMainWindow):
         self.hl_buttons.addWidget(self.button_add_row)
         self.hl_buttons.addWidget(self.button_remove_row)       
         
-        self.vl.addWidget(self.table_label)
+        self.vl.addWidget(self.label_table)
         self.vl.addWidget(self.table1)
         self.vl.addLayout(self.hl_buttons)       
         
@@ -102,8 +99,7 @@ class TableView(Qt.QMainWindow):
     
        
 
-    def item_changed(self, Qitem):
-        
+    def item_changed(self, Qitem):        
         try:
             test = float(Qitem.text())
         except ValueError:

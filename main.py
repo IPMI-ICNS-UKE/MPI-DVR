@@ -31,7 +31,8 @@ class MainWindow(Qt.QMainWindow):
         
         # Dimension of vtk image data to be visualized. The source data 
         # will be interpolated to this size if variable "interpolation" is set to true,
-        # otherwise original image dimensions of source will be used
+        # otherwise original image dimensions of source will be used. Can be 
+        # changed during visualization using the UI
         self.interpolation = False
         self.dims = [25, 25, 25]    
    
@@ -39,21 +40,26 @@ class MainWindow(Qt.QMainWindow):
         self.screenshot_number = 1  
         self.count = 0  
     
-        self.previous_time = time.time()        
+        # Time stamps are used for computation of real frame rate
+        self.previous_time = time.time()   
+        
+        # Source and and saving directories
         self.directory_source = ""
         self.directory_output = ""  
-        self.directory_mdf = ""
-              
+        self.directory_mdf = ""              
 
         # Number of total images to be visualized, will be computed automatically 
         self.number_of_total_images = None
+        
         # Data format of source file 
-        self.format = 'no_source'     
+        self.source_data_format = 'no_source'     
         
-        # Create diagram class objects to draw lookup table curve and 
-        # compute+draw image value histogram
-        self.diagram_op = plotDiagrams() 
-        
+        # Create diagram class objects. Functions: 
+        # - analyze image values of image series to find adequate
+        #   visualization parameters for sliders
+        # - draw image value histogram
+        # - draw lookup table curve         
+        self.diagram_op = plotDiagrams()         
 
         # Create timer in order to constantly update VTK pipeline.
         # Timer can be paused / started via the QT pause / play button
@@ -92,6 +98,7 @@ class MainWindow(Qt.QMainWindow):
         self.show()
         self.iren = self.vtkWidget.GetRenderWindow().GetInteractor()
         self.vtk_op.iren = self.iren 
+        self.vtk_op.vtk_widget = self.vtkWidget
         self.iren.Initialize()
         self.iren.Start()     
         
@@ -116,27 +123,27 @@ class MainWindow(Qt.QMainWindow):
         if self.count > self.number_of_total_images:
             self.count = 1             
   
-        if self.format == 'mha':            
+        if self.source_data_format == 'mha':            
             self.temporary_image = create_VTK_data_from_mha_file(self.directory_source, self.count, self.interpolation, self.dims)
             
-        if self.format == 'mdf':            
+        if self.source_data_format == 'mdf':            
             self.temporary_image = create_VTK_data_from_HDF(self.directory_mdf, self.count-1, self.interpolation, self.dims)           
         
         self.vtk_op.volumeMapperBolus.SetInputData(self.temporary_image)        
         
-        if self.roadmap_buildup_checkbox.isChecked(): 
+        if self.checkbox_roadmap_buildup.isChecked(): 
             self.vtk_op.roadmap_buildup(self.temporary_image) 
                 
         # Computation of real frame rate        
-        self.frame_rate_display.setText(str(round(1.0 / (time.time() - self.previous_time), 2)))
+        self.label_frame_rate_display.setText(str(round(1.0 / (time.time() - self.previous_time), 2)))
         self.previous_time = time.time()   
         
         # Update image count display
         image_count = str(self.count) + ' / ' + str(self.number_of_total_images)
-        self.image_count_display.setText(str(image_count) )
+        self.label_image_count_display.setText(str(image_count) )
         
         # Save screenshots of visualized MPI data if checked
-        if self.save_images_checkbox.isChecked():
+        if self.checkbox_save_images.isChecked():
             interface.screenshot_and_save(self)  
             
         self.iren.Initialize()
@@ -150,10 +157,7 @@ class MainWindow(Qt.QMainWindow):
             + str( round(fp[1], 1)) + ', ' \
             + str( round(fp[2], 1))         
         self.vtk_op.text_actor.SetInput( text )
-        self.vtk_op.text_actor.SetPosition ( 20, 20 )
-        self.vtk_op.text_actor.GetTextProperty().SetFontSize (24 )
-        self.vtk_op.text_actor.GetTextProperty().SetColor ( 0.8, 0.8, 0.8 )
-        self.vtk_op.text_actor.GetTextProperty().SetOpacity ( 0.8)
+
     
     def enableDisableButtons(self, bool_value):
         for i in self.findChildren(Qt.QPushButton):
@@ -161,6 +165,10 @@ class MainWindow(Qt.QMainWindow):
         for i in self.findChildren(Qt.QCheckBox):
             i.setEnabled(bool_value)        
         for i in self.findChildren(Qt.QSlider):
+            i.setEnabled(bool_value)
+        for i in self.findChildren(Qt.QComboBox):
+            i.setEnabled(bool_value)
+        for i in self.findChildren(Qt.QLineEdit):
             i.setEnabled(bool_value)
 
 
