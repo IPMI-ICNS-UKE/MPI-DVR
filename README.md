@@ -15,23 +15,24 @@ To start the visualization program run the main file in the Spyder editor. Load 
 
 The MPI data sets provided in the subsection “MPI data” represent the use cases illustrated in the corresponding publication. The exact visualization parameters that were used in each case are documented below. They can be applied manually via the program interface. 
 
+## Visualization parameters
 Aneurysm
 Image size: 50 x 50 x 50 
 Bolus color map: min=0.02, max=0.055
 Roadmap color: ‘blue’
-Opacity roadmap: (0, 0.0), (20, 0.00), (25, 0.2), (101, 0.2)
-Opacity bolus: (0, 0.0), (20, 0.0), (21, 0.8), (191, 0.8), (500, 0.8)
+Opacity roadmap: (0, 0.0), (0.020, 0.00), (0.025, 0.2), (0.101, 0.2)
+Opacity bolus: (0, 0.0), (0.020, 0.0), (0.021, 0.8), (0.191, 0.8)
 
 Middle cerebral artery
 Image size: 50 x 50 x 50
 Bolus color map: min=0.05, max=0.1
 Roadmap color: ‘blue’
-Opacity roadmap: (0, 0.0), (20, 0.00), (25, 0.2), (101, 0.2)
-Opacity bolus: (0, 0.0), (20, 0.0), (21, 0.8), (191, 0.8), (500, 0.8)
+Opacity roadmap: (0, 0.0), (0.020, 0.00), (0.025, 0.2), (0.101, 0.2)
+Opacity bolus: (0, 0.0), (0.020, 0.0), (0.021, 0.8), (0.191, 0.8)
 
 Hepatic artery
 Image size: 50 x 50 x50
 Bolus color map: min=0.02, max=0.065	
 Roadmap color: ‘blue’
-Opacity roadmap: (0, 0.0), (20, 0.00), (25, 0.2), (101, 0.2)
-Opacity bolus: (0, 0.0), (20, 0.0), (21, 0.8), (191,0.8)
+Opacity roadmap: (0, 0.0), (0.020, 0.00), (0.025, 0.2), (0.101, 0.2)
+Opacity bolus: (0, 0.0), (0.020, 0.0), (0.021, 0.8), (0.191, 0.8)
