@@ -19,6 +19,7 @@ from vtk_class import vtk_pipeline
 class MainWindow(Qt.QMainWindow):
     def __init__(self, parent = None):
         Qt.QMainWindow.__init__(self, parent) 
+
         
         # Adjust window size        
         self.resize(1400, 900)    
@@ -39,6 +40,7 @@ class MainWindow(Qt.QMainWindow):
         # Image count for screenshots of visualization screen
         self.screenshot_number = 1  
         self.count = 0  
+        self.roadmap_counter = 0
     
         # Time stamps are used for computation of real frame rate
         self.previous_time = time.time()   
@@ -131,8 +133,12 @@ class MainWindow(Qt.QMainWindow):
         
         self.vtk_op.volumeMapperBolus.SetInputData(self.temporary_image)        
         
-        if self.checkbox_roadmap_buildup.isChecked(): 
+        # Buildup of roadmap. Gets deactivated if one cycle has been
+        # completed
+        if self.checkbox_roadmap_buildup.isChecked() and \
+        self.roadmap_counter <= self.number_of_total_images:
             self.vtk_op.roadmap_buildup(self.temporary_image) 
+            self.roadmap_counter = self.roadmap_counter+1
                 
         # Computation of real frame rate        
         self.label_frame_rate_display.setText(str(round(1.0 / (time.time() - self.previous_time), 2)))

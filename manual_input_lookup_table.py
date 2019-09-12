@@ -21,8 +21,7 @@ class TableView(Qt.QMainWindow):
         
         if (lookup_table != None):
             self.lookup_table_matrix = lookup_table
-            self.buildupLookupTableFromLookmatrix()  
-        
+            self.buildupLookupTableFromLookmatrix()          
         
         # Initiation of button widgets and box layout  
         self.button_update_lookup_table = Qt.QPushButton('Update lookup table')

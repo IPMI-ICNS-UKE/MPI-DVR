@@ -16,6 +16,7 @@ import os.path
 import mha_reader
 import mdf_reader
 import manual_input_lookup_table
+import manual_input_color_map
 
 
 
@@ -23,7 +24,38 @@ import manual_input_lookup_table
 This file contains the initUI and the functions directly connected to 
 the display widgets (e.g. buttons, sliders, ...) 
 """
+def setColor(self, name):
+    if name == 'bolus':
+        i = self.combobox_color_bolus.currentIndex()
+    if name == 'roadmap':
+        i = self.combobox_color_roadmap.currentIndex()
+    if (i == 0):
+        # Set color red 
+        self.vtk_op.set_mono_color(name, 1, 0, 0)
+    if (i == 1):
+        # Set color blue 
+        self.vtk_op.set_mono_color(name, 0, 0, 1)
+    if (i == 2):
+        self.vtk_op.set_mono_color(name, 0, 1, 0)       
+    if (i == 3):
+        # Set color map        
+        self.subwindow_color_map_settings = manual_input_color_map.ColorMapSettingsView(self, name, None, 4, 2)
+    if (i == 4): 
+        # Enter RGB        
+        self.subwindow_RGB_color = manual_input_color_map.InputColorRGB(self, name)
+        
 
+
+
+def resetSlidersToMiddlePosition(self):
+
+    self.slider_steepness_ramp_roadmap.setProperty("value", 5000)
+    self.slider_steepness_ramp_bolus.setProperty("value", 5000)
+    self.slider_threshold_bolus.setProperty("value", 50)
+    self.slider_threshold_roadmap.setProperty("value", 50)
+    self.slider_opacity_bolus.setProperty("value", 50)
+    self.slider_opacity_roadmap.setProperty("value", 50)
+    
 def setCameraOperation(self):
     le_input = self.lineedit_camera_control.text()
     i = self.combobox_box_camera.currentIndex()
@@ -33,9 +65,7 @@ def setCameraOperation(self):
             coords_str = le_input.split(",")             
             x = float(coords_str[0])
             y = float(coords_str[1])
-            z = float(coords_str[2])
-            
-            print(coords_str)
+            z = float(coords_str[2])            
     
             self.vtk_op.setCameraPosition(x, y, z)    
             self.displayPos()    
@@ -69,6 +99,103 @@ def setCameraOperation(self):
             self.iren.Start()     
         except:
             print("Type in angle rotation in correct form!")
+            
+def setAmbDiffSpecRoadmap(self):
+    le_input = self.lineedit_amb_diff_spec_roadmap.text()
+    i = self.combobox_amd_diff_spec.currentIndex()
+    
+    if i == 1:   # Set ambient       
+        try:  
+            self.lineedit_amb_diff_spec_roadmap.setPlaceholderText(str(le_input))
+            self.vtk_op.volumePropertyRoadmap.SetAmbient(float(le_input))
+            self.iren.Initialize()
+            self.iren.Start()
+        except:
+            print("Type in value!")
+        
+    if i == 2:   # Set diffuse
+        
+        try:       
+            self.lineedit_amb_diff_spec_roadmap.setPlaceholderText(str(le_input))
+            self.vtk_op.volumePropertyRoadmap.SetDiffuse(float(le_input))
+            self.iren.Initialize()
+            self.iren.Start()
+        except:
+            print("Type in value!")
+        
+    if i == 3: 
+        try: 
+            self.lineedit_amb_diff_spec_roadmap.setPlaceholderText(str(le_input))
+            self.vtk_op.volumePropertyRoadmap.SetSpecular(float(le_input))
+            self.iren.Initialize()
+            self.iren.Start()   
+        except:
+            print("Type in value!")
+            
+def setAmbDiffSpecBolus(self):
+    le_input = self.lineedit_amb_diff_spec_bolus.text()
+    i = self.combobox_amd_diff_spec.currentIndex()
+    
+    if i == 1:   # Set ambient       
+        try:  
+            self.lineedit_amb_diff_spec_bolus.setPlaceholderText(str(le_input))
+            self.vtk_op.volumePropertyBolus.SetAmbient(float(le_input))
+            self.iren.Initialize()
+            self.iren.Start()
+        except:
+            print("Type in value!")
+        
+    if i == 2:   # Set diffuse
+        
+        try:           
+            self.lineedit_amb_diff_spec_bolus.setPlaceholderText(str(le_input))
+            self.vtk_op.volumePropertyBolus.SetDiffuse(float(le_input))
+            self.iren.Initialize()
+            self.iren.Start()
+        except:
+            print("Type in value!")
+        
+    if i == 3: 
+        try: 
+            self.lineedit_amb_diff_spec_bolus.setPlaceholderText(str(le_input))
+            self.vtk_op.volumePropertyBolus.SetSpecular(float(le_input))
+            self.iren.Initialize()
+            self.iren.Start()   
+        except:
+            print("Type in value!")
+            
+def placeholderLineEditAmbDiffSpecRoadmap(self, i):
+    if i == 1:   # Get currrent amb value        
+        a = self.vtk_op.volumePropertyRoadmap.GetAmbient()
+        self.lineedit_amb_diff_spec_roadmap.clear()
+        self.lineedit_amb_diff_spec_roadmap.setPlaceholderText(str(a))           
+        
+    if i == 2:   # Set focal point  
+        a = self.vtk_op.volumePropertyRoadmap.GetDiffuse()
+        self.lineedit_amb_diff_spec_roadmap.clear()           
+        self.lineedit_amb_diff_spec_roadmap.setPlaceholderText(str(a))           
+        
+    if i == 3:   # Set angle
+        a = self.vtk_op.volumePropertyRoadmap.GetSpecular()
+        self.lineedit_amb_diff_spec_roadmap.clear()
+        self.lineedit_amb_diff_spec_roadmap.setPlaceholderText(str(a))  
+        
+def placeholderLineEditAmbDiffSpecBolus(self, i):
+    if i == 1:   # Get currrent amb value        
+        a = self.vtk_op.volumePropertyBolus.GetAmbient()
+        self.lineedit_amb_diff_spec_bolus.clear()
+        self.lineedit_amb_diff_spec_bolus.setPlaceholderText(str(a))           
+        
+    if i == 2:   # Set focal point  
+        a = self.vtk_op.volumePropertyBolus.GetDiffuse()
+        self.lineedit_amb_diff_spec_bolus.clear()           
+        self.lineedit_amb_diff_spec_bolus.setPlaceholderText(str(a))           
+        
+    if i == 3:   # Set angle
+        a = self.vtk_op.volumePropertyBolus.GetSpecular()
+        self.lineedit_amb_diff_spec_bolus.clear()
+        self.lineedit_amb_diff_spec_bolus.setPlaceholderText(str(a))  
+
 
 def placeholderTextCameraLineedit(self, i):
     if i == 0:   # Set camera pos            
@@ -181,8 +308,8 @@ def functionSliderThresholdBolus(self, t):
     self.diagram_op.manual_lookup_table_bolus = False
     self.diagram_op.drawLookupTable()     
     self.vtk_op.updateThresholdBolus(self.threshold_bolus)
-    self.vtk_op.updateColorMap(self.threshold_bolus)
-    self.vtk_op.updateScalarBar()    
+    
+    
     
 def functionSliderSteepnessRampBolus(self, t):
     scale_factor = ( self.diagram_op.max_image_value - self.diagram_op.min_image_value ) / 10000.0
@@ -220,7 +347,7 @@ def checkboxRoadmapSignal(self):
     of the corresponding checkbox
     """    
     if not self.checkbox_roadmap_buildup.isChecked():                             
-        self.vtk_op.volumeMapperRoadmap.SetInputData(self.vtk_op.create_empty_image_data()) 
+        self.vtk_op.volumeMapperRoadmap.SetInputData(self.vtk_op.create_empty_image_data())         
         self.iren.Initialize()
         self.iren.Start()
     else:
@@ -279,6 +406,7 @@ def loadMHA(self):
         self.number_of_total_images =  mha_reader.get_number_of_image_data(self.directory_source)   
         self.dims = mha_reader.return_dims_of_first_image(self.directory_source) 
         self.dims_original = self.dims
+        self.roadmap_counter = 0
         
         # Create histogram and determine min/max image values
         self.diagram_op.computeHistogramDataBin(self.directory_source, 'mha')
@@ -302,6 +430,7 @@ def loadMHA(self):
         self.label_display_image_data_size.setText(image_size_text)
         
         # Enable all UI buttons, sliders and checkboxes
+        resetSlidersToMiddlePosition(self)
         self.enableDisableButtons(True) 
         self.update_status()
     else: 
@@ -317,6 +446,7 @@ def loadMDF(self):
         self.number_of_total_images = mdf_reader.get_number_of_images(self.directory_mdf)
         self.dims = mdf_reader.return_dimensions_image_data(self.directory_mdf)  
         self.dims_original = self.dims
+        self.roadmap_counter = 0
         
         # Create histogram and determine min/max image values
         self.diagram_op.computeHistogramDataBin(self.directory_mdf, 'mdf')    
@@ -340,6 +470,7 @@ def loadMDF(self):
         self.label_display_image_data_size.setText(image_size_text)
         
         # Enable all UI buttons, sliders and checkboxes
+        resetSlidersToMiddlePosition(self)
         self.enableDisableButtons(True)     
         self.update_status()
         
@@ -398,9 +529,11 @@ def showNextImage(self):
             self.temporary_image = mdf_reader.create_VTK_data_from_HDF(self.directory_mdf, \
                                      self.count-1, self.interpolation, \
                                      self.dims)        
-        self.vtk_op.volumeMapperBolus.SetInputData(self.temporary_image)         
-        if self.checkbox_roadmap_buildup.isChecked(): 
-            self.vtk_op.roadmap_buildup(self.temporary_image)    
+        self.vtk_op.volumeMapperBolus.SetInputData(self.temporary_image)       
+        if self.checkbox_roadmap_buildup.isChecked() and \
+        self.roadmap_counter < self.number_of_total_images: 
+            self.vtk_op.roadmap_buildup(self.temporary_image) 
+            self.roadmap_counter = self.roadmap_counter+1
             
         # Save screenshots of visualized MPI data
         if self.checkbox_save_images.isChecked():
@@ -427,7 +560,9 @@ def showPreviousImage(self):
         if self.source_data_format == 'mdf':            
             self.temporary_image = mdf_reader.create_VTK_data_from_HDF(self.directory_mdf, self.count-1, self.interpolation, self.dims)        
         
-        self.vtk_op.volumeMapperBolus.SetInputData(self.temporary_image)     
+        self.vtk_op.volumeMapperBolus.SetInputData(self.temporary_image)  
+        
+        self.roadmap_counter = self.roadmap_counter-1
         
         # Save screenshots of visualized MPI data
         if self.checkbox_save_images.isChecked():
@@ -441,8 +576,7 @@ def showPreviousImage(self):
         self.label_image_count_display.setText(str(image_count) )
         
 def check_output_directory(self):    
-    if self.directory_output != "":
-        print(self.directory_output)
+    if self.directory_output != "":        
         print('Images will be saved to: ', self.directory_output)        
     else:         
         if self.source_data_format == 'mha':
@@ -690,8 +824,24 @@ def initUI(self):
     self.button_set_camera_operation.clicked.connect(partial(setCameraOperation, self))
     self.button_set_camera_operation.setText("SET")   
     
+    self.button_set_amb_diff_spec_roadmap = Qt.QPushButton('Dialog', self)   
+    self.button_set_amb_diff_spec_roadmap.clicked.connect(partial(setAmbDiffSpecRoadmap, self))
+    self.button_set_amb_diff_spec_roadmap.setText("SET")   
+    
+    self.button_set_amb_diff_spec_bolus = Qt.QPushButton('Dialog', self)   
+    self.button_set_amb_diff_spec_bolus.clicked.connect(partial(setAmbDiffSpecBolus, self))
+    self.button_set_amb_diff_spec_bolus.setText("SET")   
+    
     self.lineedit_camera_control = Qt.QLineEdit(self)
     self.lineedit_camera_control.setPlaceholderText('x, y, z')  
+    
+    self.lineedit_amb_diff_spec_roadmap = Qt.QLineEdit(self)    
+    self.lineedit_amb_diff_spec_roadmap.setMinimumSize(10, 10)
+    self.lineedit_amb_diff_spec_roadmap.setSizePolicy(Qt.QSizePolicy.Minimum, Qt.QSizePolicy.Minimum)
+    
+    self.lineedit_amb_diff_spec_bolus = Qt.QLineEdit(self)    
+    self.lineedit_amb_diff_spec_bolus.setMinimumSize(10, 10)
+    self.lineedit_amb_diff_spec_bolus.setSizePolicy(Qt.QSizePolicy.Minimum, Qt.QSizePolicy.Minimum)
     
     self.label_image_data_size = Qt.QLabel(self)
     self.label_image_data_size.setText("Current image data size:  ")
@@ -704,8 +854,40 @@ def initUI(self):
     self.combobox_box_camera.addItem("Set camera position")
     self.combobox_box_camera.addItem("Set camera focal point")
     self.combobox_box_camera.addItem("Set rotation angle")
-    self.combobox_box_camera.currentIndexChanged.connect(partial(placeholderTextCameraLineedit, self))
+    self.combobox_box_camera.currentIndexChanged.connect(partial(placeholderTextCameraLineedit, self))    
+   
+    self.combobox_amd_diff_spec = Qt.QComboBox()  
+    self.combobox_amd_diff_spec.addItem("Lighting...")
+    self.combobox_amd_diff_spec.addItem("Set Ambient")
+    self.combobox_amd_diff_spec.addItem("Set Diffuse")
+    self.combobox_amd_diff_spec.addItem("Set Specular")
+    self.combobox_amd_diff_spec.model().item(0).setEnabled(False)    
+    self.combobox_amd_diff_spec.currentIndexChanged.connect(partial(placeholderLineEditAmbDiffSpecRoadmap, self))
+    self.combobox_amd_diff_spec.currentIndexChanged.connect(partial(placeholderLineEditAmbDiffSpecBolus, self))
     
+    self.combobox_color_bolus = Qt.QComboBox()      
+    self.combobox_color_bolus.addItem("Red")
+    self.combobox_color_bolus.addItem("Blue")
+    self.combobox_color_bolus.addItem("Green")
+    self.combobox_color_bolus.addItem("Activate colormap")
+    self.combobox_color_bolus.addItem("Enter RGB ...")
+    self.combobox_color_bolus.currentIndexChanged.connect(partial(setColor, self, 'bolus'))
+     
+    self.combobox_color_roadmap = Qt.QComboBox()   
+    self.combobox_color_roadmap.addItem("Blue")
+    self.combobox_color_roadmap.addItem("Red")    
+    self.combobox_color_roadmap.addItem("Green")
+    self.combobox_color_roadmap.addItem("Activate colormap")
+    self.combobox_color_roadmap.addItem("Enter RGB ...")
+    self.combobox_color_roadmap.currentIndexChanged.connect(partial(setColor, self, 'roadmap'))
+    
+    self.label_color = Qt.QLabel(self)        
+    self.label_color.setText("Color");   
+    self.label_color.setFixedWidth(125)    
+    
+    
+
+
 
     """
     The following lines define the spatial relation of the defined QT widgets 
@@ -750,19 +932,31 @@ def initUI(self):
         
     self.slider_block = Qt.QGridLayout()    
     self.slider_block.addWidget(self.label_text_above_bolus_slider, 1, 2, 1, 2)
-    self.slider_block.addWidget(self.label_text_above_roadmap_slider, 1, 4, 1, 2)    
-    self.slider_block.addWidget(self.label_threshold_slider, 4, 1)
-    self.slider_block.addWidget(self.slider_threshold_bolus, 4, 2, 2, 2)
-    self.slider_block.addWidget(self.slider_threshold_roadmap, 4, 4, 2, 2)       
-    self.slider_block.addWidget(self.label_opacity_slider, 6, 1)
-    self.slider_block.addWidget(self.slider_opacity_bolus, 6, 2, 2,2)
-    self.slider_block.addWidget(self.slider_opacity_roadmap, 6, 4, 2, 2)    
-    self.slider_block.addWidget(self.label_steepness_ramp, 8, 1)    
-    self.slider_block.addWidget(self.slider_steepness_ramp_bolus, 8, 2, 2, 2)
-    self.slider_block.addWidget(self.slider_steepness_ramp_roadmap, 8, 4, 2, 2)     
-    self.slider_block.addWidget(self.label_manual_defintion_lookup_table, 10, 1)    
-    self.slider_block.addWidget(self.button_activate_manual_lookup_table_bolus, 10, 2, 1, 2)
-    self.slider_block.addWidget(self.button_activate_manual_lookup_table_roadmap, 10, 4, 1, 2)    
+    self.slider_block.addWidget(self.label_text_above_roadmap_slider, 1, 4, 1, 2)  
+    
+    self.slider_block.addWidget(self.label_color, 4, 1)
+    self.slider_block.addWidget(self.combobox_color_bolus, 4, 2, 2, 2)
+    self.slider_block.addWidget(self.combobox_color_roadmap, 4, 4, 2, 2)    
+    
+    self.slider_block.addWidget(self.label_threshold_slider, 6, 1)
+    self.slider_block.addWidget(self.slider_threshold_bolus, 6, 2, 2, 2)
+    self.slider_block.addWidget(self.slider_threshold_roadmap, 6, 4, 2, 2)       
+    self.slider_block.addWidget(self.label_opacity_slider, 8, 1)
+    self.slider_block.addWidget(self.slider_opacity_bolus, 8, 2, 2,2)
+    self.slider_block.addWidget(self.slider_opacity_roadmap, 8, 4, 2, 2)    
+    self.slider_block.addWidget(self.label_steepness_ramp, 10, 1)    
+    self.slider_block.addWidget(self.slider_steepness_ramp_bolus, 10, 2, 2, 2)
+    self.slider_block.addWidget(self.slider_steepness_ramp_roadmap, 10, 4, 2, 2)     
+    self.slider_block.addWidget(self.label_manual_defintion_lookup_table, 12, 1)    
+    self.slider_block.addWidget(self.button_activate_manual_lookup_table_bolus, 12, 2, 1, 2)
+    self.slider_block.addWidget(self.button_activate_manual_lookup_table_roadmap, 12, 4, 1, 2)  
+    self.slider_block.addWidget(self.combobox_amd_diff_spec, 14, 1) 
+    self.slider_block.addWidget(self.lineedit_amb_diff_spec_bolus, 14, 2, 1, 1) 
+    self.slider_block.addWidget(self.button_set_amb_diff_spec_bolus, 14, 3, 1, 1) 
+    self.slider_block.addWidget(self.lineedit_amb_diff_spec_roadmap, 14, 4, 1, 1) 
+    self.slider_block.addWidget(self.button_set_amb_diff_spec_roadmap, 14, 5, 1, 1) 
+
+    
     
     self.hl_image_specs = Qt.QHBoxLayout()
     self.hl_image_specs.addWidget(self.label_image_data_size)
