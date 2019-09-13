@@ -50,4 +50,4 @@ The MPI data sets provided in the subsection “MPI data” represent the use ca
 - Bolus color map: min=0.02, max=0.065	
 - Roadmap color: ‘blue’
 - Opacity roadmap: (0, 0.0), (0.020, 0.00), (0.025, 0.2), (0.101, 0.2)
-- Opacity bolus: (0, 0.0), (0.020, 0.0), (0.021, 0.8), (0.191, 0.8)
+- Opacity bolus: (0, 0.0), (0.010, 0.0), (0.02, 0.3), (0.0.04, 0.6), (0.1, 0.6)
