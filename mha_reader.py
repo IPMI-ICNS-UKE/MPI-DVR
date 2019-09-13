@@ -80,7 +80,7 @@ def return_data_array(directory_source):
         name = create_mha_file_name(directory_source, count)      
     
     
-    print(histo_bin.shape)
+    
     return histo_bin
     
 

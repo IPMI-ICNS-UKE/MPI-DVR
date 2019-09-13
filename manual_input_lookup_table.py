@@ -1,18 +1,13 @@
-from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QAction, QTableWidget,QTableWidgetItem,QVBoxLayout
-from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import pyqtSlot
-import sys
+# External libraries
+from PyQt5.QtWidgets import QTableWidget,QTableWidgetItem
 from PyQt5 import Qt
-
-
 
  
 class TableView(Qt.QMainWindow):
-    def __init__(self, parent, mode, *args):
+    def __init__(self, parent, mode, lookup_table, *args):
         super(TableView, self).__init__(parent)         
         
-        self.currentData = mode
-        
+        self.currentData = mode        
         self.image_values = [0, 1]
         self.opacity_values = [0, 1]
         self.lookup_table_matrix = list(zip(self.image_values, self.opacity_values))
@@ -24,8 +19,9 @@ class TableView(Qt.QMainWindow):
         self.table1.resizeRowsToContents()        
         self.table1.itemChanged.connect(self.item_changed)   
         
-        
-        
+        if (lookup_table != None):
+            self.lookup_table_matrix = lookup_table
+            self.buildupLookupTableFromLookmatrix()          
         
         # Initiation of button widgets and box layout  
         self.button_update_lookup_table = Qt.QPushButton('Update lookup table')
@@ -37,8 +33,8 @@ class TableView(Qt.QMainWindow):
         self.button_add_row = Qt.QPushButton('Add entry')
         self.button_add_row.clicked.connect(self.addRow)
         
-        self.table_label = Qt.QLabel()
-        self.table_label.setText('Lookup table ' + mode)
+        self.label_table = Qt.QLabel()
+        self.label_table.setText('Lookup table ' + mode)
         
         self.frame = Qt.QFrame()  
         self.vl = Qt.QVBoxLayout()
@@ -50,7 +46,7 @@ class TableView(Qt.QMainWindow):
         self.hl_buttons.addWidget(self.button_add_row)
         self.hl_buttons.addWidget(self.button_remove_row)       
         
-        self.vl.addWidget(self.table_label)
+        self.vl.addWidget(self.label_table)
         self.vl.addWidget(self.table1)
         self.vl.addLayout(self.hl_buttons)       
         
@@ -60,8 +56,7 @@ class TableView(Qt.QMainWindow):
         temp_lst = []
         for i in range(self.table1.rowCount()):
             if (self.table1.item (i, 0) is not None and \
-                self.table1.item (i, 1) is not None):
-                
+                self.table1.item (i, 1) is not None):                
                 a = float(self.table1.item (i, 0).text())    
                 b = float(self.table1.item (i, 1).text()) 
                 temp_lst.append([a,b])
@@ -97,33 +92,28 @@ class TableView(Qt.QMainWindow):
             newitem = QTableWidgetItem(str(self.lookup_table_matrix[i][0]))
             newitem2 = QTableWidgetItem(str(self.lookup_table_matrix[i][1]))
             self.table1.setItem(i, 0, newitem)
-            self.table1.setItem(i, 1, newitem2)
-        
-    
-       
+            self.table1.setItem(i, 1, newitem2)      
 
-    def item_changed(self, Qitem):
-        
+    def item_changed(self, Qitem):        
         try:
             test = float(Qitem.text())
         except ValueError:
             Msgbox = Qt.QMessageBox()
             Msgbox.setText("Value must be number! Use '.' for decimal places!")
             Msgbox.exec()
-            Qitem.setText(str(self.lookup_table_matrix[Qitem.row()][Qitem.column()]))
-
-        
-        
+            try: 
+                Qitem.setText(str(self.lookup_table_matrix[Qitem.row()][Qitem.column()]))
+            except: 
+                Qitem.setText('0')
+       
     def addRow(self):
         rowPosition = self.table1.rowCount()
-        self.table1.insertRow(rowPosition)
-        
+        self.table1.insertRow(rowPosition)        
         self.table1.resizeColumnsToContents()
         self.table1.resizeRowsToContents()
         
     def removeRow(self, Qitem):
         rowPosition = self.table1.rowCount()-1
-        self.table1.removeRow(rowPosition)
- 
+        self.table1.removeRow(rowPosition) 
         self.table1.resizeColumnsToContents()
         self.table1.resizeRowsToContents()
