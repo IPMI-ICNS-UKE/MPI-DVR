@@ -56,8 +56,7 @@ class TableView(Qt.QMainWindow):
         temp_lst = []
         for i in range(self.table1.rowCount()):
             if (self.table1.item (i, 0) is not None and \
-                self.table1.item (i, 1) is not None):
-                
+                self.table1.item (i, 1) is not None):                
                 a = float(self.table1.item (i, 0).text())    
                 b = float(self.table1.item (i, 1).text()) 
                 temp_lst.append([a,b])
@@ -93,10 +92,7 @@ class TableView(Qt.QMainWindow):
             newitem = QTableWidgetItem(str(self.lookup_table_matrix[i][0]))
             newitem2 = QTableWidgetItem(str(self.lookup_table_matrix[i][1]))
             self.table1.setItem(i, 0, newitem)
-            self.table1.setItem(i, 1, newitem2)
-        
-    
-       
+            self.table1.setItem(i, 1, newitem2)      
 
     def item_changed(self, Qitem):        
         try:
@@ -105,20 +101,19 @@ class TableView(Qt.QMainWindow):
             Msgbox = Qt.QMessageBox()
             Msgbox.setText("Value must be number! Use '.' for decimal places!")
             Msgbox.exec()
-            Qitem.setText(str(self.lookup_table_matrix[Qitem.row()][Qitem.column()]))
-
-        
-        
+            try: 
+                Qitem.setText(str(self.lookup_table_matrix[Qitem.row()][Qitem.column()]))
+            except: 
+                Qitem.setText('0')
+       
     def addRow(self):
         rowPosition = self.table1.rowCount()
-        self.table1.insertRow(rowPosition)
-        
+        self.table1.insertRow(rowPosition)        
         self.table1.resizeColumnsToContents()
         self.table1.resizeRowsToContents()
         
     def removeRow(self, Qitem):
         rowPosition = self.table1.rowCount()-1
-        self.table1.removeRow(rowPosition)
- 
+        self.table1.removeRow(rowPosition) 
         self.table1.resizeColumnsToContents()
         self.table1.resizeRowsToContents()

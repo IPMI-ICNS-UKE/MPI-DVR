@@ -44,19 +44,13 @@ class vtk_pipeline:
         # Color map and scalar bar parameters
         self.height_scalarBar = 250        
         self.HSV_color_max_value = 0, 1.0, 1.0
-        self.HSV_color_min_value = 0.166, 1.0, 1.0
+        self.HSV_color_min_value = 0.166, 1.0, 1.0        
         
-                
-        self.lookup_table_matrix = []        
-       
+        # Maunal lookup table        
+        self.lookup_table_matrix = []         
          
         # VTK writer to save mha roadmap file
-        self.writer_roadmap = vtk.vtkMetaImageWriter()       
-        
-         
-  
-        
-        
+        self.writer_roadmap = vtk.vtkMetaImageWriter()            
         
         # Setup of 3D visualization pipeline        
         empty_image_bolus = self.create_empty_image_data()
@@ -78,9 +72,15 @@ class vtk_pipeline:
         colorTransferFunctionRoadmap.AddRGBPoint(20.0, 0.0, 0.0, 1.0)        
         
         volumeGradientOpacity = vtk.vtkPiecewiseFunction()
-        volumeGradientOpacity.AddPoint(0,   0.2)
-        volumeGradientOpacity.AddPoint(80,  0.5)
-        volumeGradientOpacity.AddPoint(100, 0.8)
+# =============================================================================
+#         volumeGradientOpacity.AddPoint(0,   0.2)
+#         volumeGradientOpacity.AddPoint(80,  0.5)
+#         volumeGradientOpacity.AddPoint(100, 0.8)
+# =============================================================================
+        
+        volumeGradientOpacity.AddPoint(0,   0.9)
+        volumeGradientOpacity.AddPoint(80,  0.9)
+        volumeGradientOpacity.AddPoint(100, 0.9)
         
         self.volumePropertyBolus = vtk.vtkVolumeProperty()        
         self.volumePropertyBolus.SetScalarOpacity(placeholderOpacityTransferFunctionBolus)
@@ -89,17 +89,12 @@ class vtk_pipeline:
         self.volumePropertyBolus.SetAmbient(self.bolusAmbient)
         self.volumePropertyBolus.SetDiffuse(self.bolusDiffuse)
         self.volumePropertyBolus.SetSpecular(self.bolusSpecular) 
-        self.volumePropertyBolus.SetGradientOpacity(volumeGradientOpacity) 
-        
-        
+        self.volumePropertyBolus.SetGradientOpacity(volumeGradientOpacity)        
         
         self.volumePropertyRoadmap = vtk.vtkVolumeProperty()
         self.volumePropertyRoadmap.SetColor(colorTransferFunctionRoadmap)
         self.volumePropertyRoadmap.SetScalarOpacity(placeholderOpacityTransferFunctionRoadmap)
-        self.volumePropertyRoadmap.ShadeOn()
-       
-
-        
+        self.volumePropertyRoadmap.ShadeOn()              
         self.volumePropertyRoadmap.SetInterpolationTypeToLinear()
         self.volumePropertyRoadmap.SetAmbient(self.roadmapAmbient)
         self.volumePropertyRoadmap.SetDiffuse(self.roadmapDiffuse)
@@ -108,21 +103,18 @@ class vtk_pipeline:
                      
         self.volumeBolus = vtk.vtkVolume()
         self.volumeBolus.SetMapper(self.volumeMapperBolus)
-        self.volumeBolus.SetProperty(self.volumePropertyBolus)      
-        
-        
-
-        
-        
+        self.volumeBolus.SetProperty(self.volumePropertyBolus)          
         
         self.volumeRoadmap = vtk.vtkVolume()
         self.volumeRoadmap.SetMapper(self.volumeMapperRoadmap)
         self.volumeRoadmap.SetProperty(self.volumePropertyRoadmap)   
         
-        # Creation of additional actors to be visualized       
+        # Creation of additional 2D actors to be visualized   
+        # 1. Scalar bar to visualize color map range
         self.actor_scalar_bar_bolus = self.create_color_scalar_bar(0.0, 1.0)
         self.actor_scalar_bar_roadmap = self.create_color_scalar_bar(0.0, 1.0)            
            
+        # 2. Text actor to display camera position and focal point
         self.text_actor = vtk.vtkTextActor()                
         self.text_actor.SetPosition ( 20, 20 )
         self.text_actor.GetTextProperty().SetFontSize (24 )
@@ -132,12 +124,10 @@ class vtk_pipeline:
         # Setup renderer
         self.ren = vtk.vtkRenderer()   
         self.ren.AddVolume(self.volumeRoadmap)
-        self.ren.AddVolume(self.volumeBolus)
-        
+        self.ren.AddVolume(self.volumeBolus)        
         self.ren.AddActor2D (self.text_actor )        
         self.ren.SetBackground(1.0,1.0,1.0)
-        self.ren.ResetCamera()
-        
+        self.ren.ResetCamera()        
 
     
     def updateSteepnessBolus(self, intervall_bolus):    
@@ -174,29 +164,20 @@ class vtk_pipeline:
         self.opacity_max_bolus = opacity_max_bolus     
         self.volumePropertyBolus.SetScalarOpacity(self.create_lookup_table_slider('bolus'))   
         self.iren.Initialize()
-        self.iren.Start()
-        
-
-        
+        self.iren.Start()        
         
     def linearRampFunction(self, variable_ending, x):
         opacity_max_string = 'self.opacity_max_' + variable_ending        
-        opacity_max = eval(opacity_max_string)
-        
+        opacity_max = eval(opacity_max_string)        
         intervall_string = 'self.intervall_' + variable_ending 
-        intervall = eval(intervall_string)
-        
+        intervall = eval(intervall_string)        
         threshold_string = 'self.threshold_' + variable_ending 
         threshold = eval(threshold_string)       
 
         # Compute function parameters of linear ramp curve (f(x)= m*x + d)        
         m = opacity_max / intervall
-        d = -1.0 * threshold * m
-        
-        return m * x + d         
-        
-       
-        
+        d = -1.0 * threshold * m        
+        return m * x + d              
         
     def create_grid(self, image_data_original):        
         imageDataGrid = vtk.vtkImageData()
@@ -207,7 +188,6 @@ class vtk_pipeline:
         
         imageDataGrid.SetDimensions(2,2,2)        
         imageDataGrid.SetSpacing(x_grid, y_grid, z_grid)   
-
         
         volumeMapperGrid =  vtk.vtkDataSetMapper()  
         volumeMapperGrid.SetInputData(imageDataGrid)
@@ -216,12 +196,8 @@ class vtk_pipeline:
         actorGrid.SetMapper(volumeMapperGrid)
         actorGrid.GetProperty().SetRepresentationToWireframe()
         actorGrid.GetProperty().SetOpacity(1.0)
-        actorGrid.GetProperty().SetColor(0.0, 0.0, 0.0)
-        
-        return actorGrid         
-            
-
-    
+        actorGrid.GetProperty().SetColor(0.0, 0.0, 0.0)        
+        return actorGrid            
         
     def create_lookup_table_slider(self, name):
         """ 
@@ -240,8 +216,7 @@ class vtk_pipeline:
             for x in np.arange(x_start, x_end, x_increment):
                 opacityTransferFunction.AddPoint(x, self.linearRampFunction('bolus',x))
             # Add plateau after ramp
-            opacityTransferFunction.AddPoint(x_plateau, self.opacity_max_bolus)
-            
+            opacityTransferFunction.AddPoint(x_plateau, self.opacity_max_bolus)            
         
         if (name == 'roadmap'): 
             x_increment = self.intervall_roadmap / 10.0
@@ -254,8 +229,7 @@ class vtk_pipeline:
             # Add plateau after ramp
             opacityTransferFunction.AddPoint(x_plateau, self.opacity_max_roadmap)
             
-        return opacityTransferFunction
-    
+        return opacityTransferFunction    
     
     def create_lookup_table_from_manual_input(self): 
         opacityTransferFunction = vtk.vtkPiecewiseFunction()
@@ -264,8 +238,7 @@ class vtk_pipeline:
             opacityTransferFunction.AddPoint(self.lookup_table_matrix[i][0], \
                             self.lookup_table_matrix[i][1])
             
-        return opacityTransferFunction 
-    
+        return opacityTransferFunction     
     
     def updateVTKparameters(self, min_image_value, max_image_value, dim_images):
         self.total_image_value_range = max_image_value - min_image_value
@@ -292,7 +265,6 @@ class vtk_pipeline:
     def set_mono_color(self, name, r, g, b):
         colorTransferFunction = vtk.vtkColorTransferFunction()        
         colorTransferFunction.AddRGBPoint(0,r,g,b)
-
         
         if name == 'bolus': 
             self.volumePropertyBolus.SetColor(colorTransferFunction)
@@ -300,12 +272,7 @@ class vtk_pipeline:
             self.volumePropertyRoadmap.SetColor(colorTransferFunction)
             
         self.iren.Initialize()
-        self.iren.Start()
-        
-
-    
-    
-    
+        self.iren.Start()    
     
     def create_color_lookup_table(self, min_value, max_value):
         colorTransferFunctionBolus = vtk.vtkColorTransferFunction()
@@ -322,8 +289,7 @@ class vtk_pipeline:
         #print(colorTransferFunctionBolus.GetAboveRangeColor())
         #print(colorTransferFunctionBolus.GetBelowRangeColor())        
         #colorTransferFunctionBolus.UseBelowRangeColorOn ()
-        #colorTransferFunctionBolus.UseAboveRangeColorOn ()
-        
+        #colorTransferFunctionBolus.UseAboveRangeColorOn ()        
         return colorTransferFunctionBolus
     
     def updateColorMap(self, name, min_value, max_value):
@@ -377,8 +343,7 @@ class vtk_pipeline:
         
         # Compute cutoff value to eliminate background noise contribution to roadmap
         cutoff_roadmap_buildup = self.min_image_value + self.cutoff_factor_roadmap \
-                                 * (self.max_image_value -self.min_image_value)
-        
+                                 * (self.max_image_value -self.min_image_value)        
             
         for z in range(current_image_data.GetDimensions()[2]):
             for y in range(current_image_data.GetDimensions()[1]):
@@ -398,8 +363,7 @@ class vtk_pipeline:
                     new_value_roadmap = self.image_data_roadmap.GetScalarComponentAsDouble(x,y,z,0)    
                     self.image_data_new_roadmap.SetScalarComponentFromDouble(x, y, z, 0, new_value_roadmap)       
     
-        self.volumeMapperRoadmap.SetInputData(self.image_data_new_roadmap)    
-    
+        self.volumeMapperRoadmap.SetInputData(self.image_data_new_roadmap)        
     
     def adjust_size_roadmap(self, dims):        
         resizeRoadmap = vtk.vtkImageResize()
@@ -407,13 +371,10 @@ class vtk_pipeline:
         resizeRoadmap.SetOutputDimensions(dims[0],dims[1],dims[2])
         resizeRoadmap.Update()
         self.image_data_roadmap = resizeRoadmap.GetOutput()
-        self.volumeMapperRoadmap.SetInputData(self.image_data_roadmap)  
-    
+        self.volumeMapperRoadmap.SetInputData(self.image_data_roadmap)      
     
     def clear_roadmap(self):        
-        self.image_data_roadmap = self.create_empty_image_data()
-
-        
+        self.image_data_roadmap = self.create_empty_image_data()       
     
     def create_empty_image_data(self):        
         imageData = vtk.vtkImageData()
@@ -428,8 +389,6 @@ class vtk_pipeline:
                        imageData.SetScalarComponentFromDouble(x, y, z, 0, 0.0)
         
         return imageData
-                
-
       
     def setCameraPosition(self, x_pos, y_pos, z_pos):
         camera = self.ren.GetActiveCamera()

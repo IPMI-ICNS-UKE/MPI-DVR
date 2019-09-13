@@ -19,14 +19,13 @@ from vtk_class import vtk_pipeline
 class MainWindow(Qt.QMainWindow):
     def __init__(self, parent = None):
         Qt.QMainWindow.__init__(self, parent) 
-
         
         # Adjust window size        
         self.resize(1400, 900)    
         
         # Time per image; playback speed is intitially set to this 
         # value but can be changed during visualization using the playback 
-        # speed slider and the play/pause button. CAVE: a frame rate 
+        # speed slider and the play/pause button. A frame rate 
         # of 21.5ms can only be achieved using a very dedicated hardware setup
         self.t_ms = 21.5    
         
@@ -36,47 +35,17 @@ class MainWindow(Qt.QMainWindow):
         # changed during visualization using the UI
         self.interpolation = False
         self.dims = [25, 25, 25]    
-   
-        # Image count for screenshots of visualization screen
-        self.screenshot_number = 1  
-        self.count = 0  
-        self.roadmap_counter = 0
-    
-        # Time stamps are used for computation of real frame rate
-        self.previous_time = time.time()   
-        
-        # Source and and saving directories
-        self.directory_source = ""
-        self.directory_output = ""  
-        self.directory_mdf = ""              
-
-        # Number of total images to be visualized, will be computed automatically 
-        self.number_of_total_images = None
-        
-        # Data format of source file 
-        self.source_data_format = 'no_source'     
-        
+         
         # Create diagram class objects. Functions: 
         # - analyze image values of image series to find adequate
         #   visualization parameters for sliders
         # - draw image value histogram
         # - draw lookup table curve         
-        self.diagram_op = plotDiagrams()         
-
-        # Create timer in order to constantly update VTK pipeline.
-        # Timer can be paused / started via the QT pause / play button
-        self.timer = Qt.QTimer(self)
-        self.timer.setSingleShot(False)
-        self.timer.timeout.connect(self.update_status)    
+        self.diagram_op = plotDiagrams()  
         
         # Creation of vtk class object to invoke the buildup
         # of visualization pipeline
-        self.vtk_op = vtk_pipeline()     
-        #self.vtk_op.dimension_vtk_data = self.dims
-   
-        # Use of manual lookup tables
-        self.manual_lookup_table_bolus = None
-        self.manual_lookup_table_roadmap = None
+        self.vtk_op = vtk_pipeline()   
             
         # Create QT display interfaces that show visualization pipeline óutput             
         self.frame = Qt.QFrame()      
@@ -91,7 +60,7 @@ class MainWindow(Qt.QMainWindow):
        
         # Disable all interface widgets until source data is successfully loaded 
         # (except load buttons)
-        self.enableDisableButtons(False)        
+        interface.enableDisableButtons(self,False)        
         self.button_load_mdf_file.setEnabled(True)
         self.button_load_mha_files.setEnabled(True)
         self.button_saving_directory_screenshots.setEnabled(True)        
@@ -102,9 +71,17 @@ class MainWindow(Qt.QMainWindow):
         self.vtk_op.iren = self.iren 
         self.vtk_op.vtk_widget = self.vtkWidget
         self.iren.Initialize()
-        self.iren.Start()     
+        self.iren.Start()    
         
-        # Start timer that constantly updates camera position und focal point
+        # Create timer to constantly update VTK pipeline.
+        # Timer can be paused / started via the QT pause / play button
+        self.timer = Qt.QTimer(self)
+        self.timer.setSingleShot(False)
+        self.timer.timeout.connect(self.update_status) 
+        self.previous_time = time.time()
+        
+        # Create timer to constantly update the display of camera position 
+        # and focal point on the visualization screen
         self.timer_cp = Qt.QTimer(self)
         self.timer_cp.setSingleShot(False)
         self.timer_cp.timeout.connect(self.displayPos) 
@@ -114,7 +91,7 @@ class MainWindow(Qt.QMainWindow):
     def update_status(self): 
         """
         This function updates the VTK pipeline by feeding the 
-        volumeMapperBolus object the subsequent image data object.
+        volume mapper object the subsequent image data object.
         It will be constantly invoked by the QT timer object. 
         The corresponding image data is aquired using the mdf / mha reader.         
         """        
@@ -133,7 +110,7 @@ class MainWindow(Qt.QMainWindow):
         
         self.vtk_op.volumeMapperBolus.SetInputData(self.temporary_image)        
         
-        # Buildup of roadmap. Gets deactivated if one cycle has been
+        # Buildup of roadmap. Gets deactivated if whole cycle has been
         # completed
         if self.checkbox_roadmap_buildup.isChecked() and \
         self.roadmap_counter <= self.number_of_total_images:
@@ -152,10 +129,16 @@ class MainWindow(Qt.QMainWindow):
         if self.checkbox_save_images.isChecked():
             interface.screenshot_and_save(self)  
             
+        # Render image
         self.iren.Initialize()
         self.iren.Start()    
     
-    def displayPos(self):        
+    def displayPos(self):  
+        """ 
+        This function is constantly invoked by timer_cp and thereby 
+        continously updates the camera specifications (camera position, focal
+        point)
+        """
         pos = self.vtk_op.ren.GetActiveCamera().GetPosition()
         fp = self.vtk_op.ren.GetActiveCamera().GetFocalPoint()
         text = 'Camera: ' + str( round(pos[0], 1)) + ', ' + str( round(pos[1], 1)) + ', ' \
@@ -163,19 +146,6 @@ class MainWindow(Qt.QMainWindow):
             + str( round(fp[1], 1)) + ', ' \
             + str( round(fp[2], 1))         
         self.vtk_op.text_actor.SetInput( text )
-
-    
-    def enableDisableButtons(self, bool_value):
-        for i in self.findChildren(Qt.QPushButton):
-            i.setEnabled(bool_value)            
-        for i in self.findChildren(Qt.QCheckBox):
-            i.setEnabled(bool_value)        
-        for i in self.findChildren(Qt.QSlider):
-            i.setEnabled(bool_value)
-        for i in self.findChildren(Qt.QComboBox):
-            i.setEnabled(bool_value)
-        for i in self.findChildren(Qt.QLineEdit):
-            i.setEnabled(bool_value)
 
 
 if __name__ == "__main__":

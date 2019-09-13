@@ -6,7 +6,7 @@ from PyQt5 import Qt
 
  
 class ColorMapSettingsView(Qt.QMainWindow):
-    def __init__(self, parent, mode, lookup_table, *args):
+    def __init__(self, parent, mode):
         super(ColorMapSettingsView, self).__init__(parent)         
         
         self.max_value = 100.0
