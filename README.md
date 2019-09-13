@@ -36,7 +36,7 @@ The MPI data sets provided in the subsection “MPI data” represent the use ca
 - Bolus color map: min=0.02, max=0.055
 - Roadmap color: ‘blue’
 - Opacity roadmap: (0, 0.0), (0.020, 0.00), (0.025, 0.2), (0.101, 0.2)
-- Opacity bolus: (0, 0.0), (0.020, 0.0), (0.021, 0.8), (0.191, 0.8)
+- Opacity bolus: (0, 0.0), (0.016, 0.0), (0.017, 0.7), (0.191, 0.7)
 
 ### Middle cerebral artery
 - Image size: 50 x 50 x 50
