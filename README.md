@@ -32,21 +32,21 @@ The MPI data sets provided in the subsection “MPI data” represent the use ca
 
 ## Visualization parameters
 ### Aneurysm
-- Image size: 50 x 50 x 50 
+- Image size: 100 x 100 x 100 
 - Bolus color map: min=0.02, max=0.055
 - Roadmap color: ‘blue’
 - Opacity roadmap: (0, 0.0), (0.020, 0.00), (0.025, 0.2), (0.101, 0.2)
 - Opacity bolus: (0, 0.0), (0.016, 0.0), (0.017, 0.7), (0.191, 0.7)
 
 ### Middle cerebral artery
-- Image size: 50 x 50 x 50
+- Image size: 100 x 100 x 100
 - Bolus color map: min=0.05, max=0.1
 - Roadmap color: ‘blue’
 - Opacity roadmap: (0.000, 0.0), (0.010, 0.0), (0.045, 0.8), (0.100, 0.8)
 - Opacity bolus: (0.000, 0.0), (0.020, 0.0), (0.021, 0.8), (0.191, 0.8)
 
 ### Hepatic artery
-- Image size: 50 x 50 x50
+- Image size: 100 x 100 x 100
 - Bolus color map: min=0.02, max=0.065	
 - Roadmap color: ‘blue’
 - Opacity roadmap: (0, 0.0), (0.020, 0.00), (0.025, 0.2), (0.101, 0.2)
