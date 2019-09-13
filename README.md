@@ -1,5 +1,20 @@
 # MPI-DVR
-3D Direct Volume Rendering (DVR) for real time-capable 3D visualization of Magnetic Particle Imaging (MPI) data  
+3D Direct Volume Rendering (DVR) for real time-capable 3D visualization of Magnetic Particle Imaging (MPI) data.
+
+This repository contains the Python code and MPI image data sets associated to our manuscript *Combining Direct 3D Volume Rendering and Magnetic Particle Imaging to Advance Radiation-Free Real-Time 3D Guidance of Vascular Interventions*, to be published in *CardioVascular and Interventional Radiology*:
+
+```
+@article{Weller2019,
+	author = {Weller, Dominik and Salamon, Johannes M and Fr{\"o}lich, Andreas and M{\"o}ddel, Martin and Knopp, Tobias and Werner, Rene},
+	title = {Combining Direct {3D} Volume Rendering and Magnetic Particle Imaging to Advance Radiation-Free Real-Time {3D} Guidance of Vascular Interventions},
+	journal = {{C}ardio{V}ascular and {I}nterventional {R}adiology},
+	year = {2019},
+	volume = {NN},
+	number = {NN},
+	pages = {(in print)},
+	doi = {10.1007/s00270-019-02340-4}
+}
+```
 
 ## Requirements
 The provided code has been tested with Python 3.6.6 on Windows 10 Home. The following Python packages are required (lower versions may also be sufficient):
@@ -11,7 +26,7 @@ The provided code has been tested with Python 3.6.6 on Windows 10 Home. The foll
 - VTK >= 8.1.0
 
 ## Program start
-To start the visualization program run the main file in the Spyder editor. Load the .mdf/.mha data you wish to view into the reader using the "Load MDF"/"Load MHA" button. Pressing the play button will start the visualization process. In order to create screenshots, it is necessary to specify a saving directory beforehand. The implemented UI allows for interactive control of essential visualization parameters (e.g. image value threshold, opacity, color) and playback settings. 
+To start the visualization program, run the main file in the Spyder editor. Load the .mdf/.mha data you wish to view into the reader using the "Load MDF"/"Load MHA" button. Pressing the play button will start the visualization process. In order to create screenshots, it is necessary to specify a saving directory beforehand. The implemented UI allows for interactive control of essential visualization parameters (e.g. image value threshold, opacity, color) and playback settings. 
 
 The MPI data sets provided in the subsection “MPI data” represent the use cases illustrated in the corresponding publication. The exact visualization parameters that were used in each case are documented below. They can be applied manually via the program interface. 
 
