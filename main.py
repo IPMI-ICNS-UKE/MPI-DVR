@@ -10,9 +10,9 @@ from PyQt5 import Qt
 import time
 from vtk.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 
-from mdf_reader import create_VTK_data_from_HDF
-from mha_reader import create_VTK_data_from_mha_file
-from diagram_class import plotDiagrams
+import mdf_reader 
+import mha_reader 
+import diagram_class
 import interface
 from vtk_class import vtk_pipeline
 
@@ -41,7 +41,7 @@ class MainWindow(Qt.QMainWindow):
         #   visualization parameters for sliders
         # - draw image value histogram
         # - draw lookup table curve         
-        self.diagram_op = plotDiagrams()  
+        self.diagram_op = diagram_class.plotDiagrams()  
         
         # Creation of vtk class object to invoke the buildup
         # of visualization pipeline
@@ -51,6 +51,26 @@ class MainWindow(Qt.QMainWindow):
         self.frame = Qt.QFrame()      
         self.vtkWidget = QVTKRenderWindowInteractor(self.frame)        
         self.setCentralWidget(self.frame)        
+
+        # Defintion of standard min/max image values and the  starting 
+        # positions of the sliders (sl = slider, pos = position, 
+        # bl = bl, rm = roadmap, op = op, st = steepness ramp, 
+        # th = th). Those values will be used if pre image analysis 
+        # is deactivated.
+        self.min_value = 0.0
+        self.max_value = 0.1
+        
+        self.sl_pos_th_bl = 0.5
+        self.sl_pos_th_rm = 0.5
+        
+        self.sl_pos_op_bl = 0.5
+        self.sl_pos_op_rm = 0.5   
+        
+        self.sl_pos_ri_bl = 0.5
+        self.sl_pos_ri_rm = 0.5        
+        
+        self.updateVisualizationParameters()
+
 
         # Setup of QT GUI
         interface.initUI(self)
@@ -63,7 +83,8 @@ class MainWindow(Qt.QMainWindow):
         interface.enableDisableButtons(self,False)        
         self.button_load_mdf_file.setEnabled(True)
         self.button_load_mha_files.setEnabled(True)
-        self.button_saving_directory_screenshots.setEnabled(True)        
+        self.button_saving_directory_screenshots.setEnabled(True)   
+        self.combobox_pre_image_analysis.setEnabled(True) 
         
         # Set main window visible and access render window interactor
         self.show()
@@ -77,7 +98,7 @@ class MainWindow(Qt.QMainWindow):
         # Timer can be paused / started via the QT pause / play button
         self.timer = Qt.QTimer(self)
         self.timer.setSingleShot(False)
-        self.timer.timeout.connect(self.update_status) 
+        self.timer.timeout.connect(self.updateStatus) 
         self.previous_time = time.time()
         
         # Create timer to constantly update the display of camera position 
@@ -87,8 +108,14 @@ class MainWindow(Qt.QMainWindow):
         self.timer_cp.timeout.connect(self.displayPos) 
         self.timer_cp.start(1)
         
+        # Defintion of directory variables
+        self.directory_output = None
+        self.directory_mha = None
+        self.directory_mdf = None
         
-    def update_status(self): 
+
+        
+    def updateStatus(self): 
         """
         This function updates the VTK pipeline by feeding the 
         volume mapper object the subsequent image data object.
@@ -96,38 +123,38 @@ class MainWindow(Qt.QMainWindow):
         The corresponding image data is aquired using the mdf / mha reader.         
         """        
         # Defines number of image that will be visualized
-        self.count = self.count + 1 
+        self.image_count = self.image_count + 1 
         # Reset image count if out of boundary 
         # --> Image sequence restarts from the beginning 
-        if self.count > self.number_of_total_images:
-            self.count = 1             
+        if self.image_count > self.number_of_total_images:
+            self.image_count = 1             
   
         if self.source_data_format == 'mha':            
-            self.temporary_image = create_VTK_data_from_mha_file(self.directory_source, self.count, self.interpolation, self.dims)
+            self.temporary_image = mha_reader.createVTKDataFromMHAFile(self.directory_mha, self.image_count, self.interpolation, self.dims)
             
         if self.source_data_format == 'mdf':            
-            self.temporary_image = create_VTK_data_from_HDF(self.directory_mdf, self.count-1, self.interpolation, self.dims)           
+            self.temporary_image = mdf_reader.createVTKDataFromHDF(self.directory_mdf, self.image_count-1, self.interpolation, self.dims)           
         
-        self.vtk_op.volumeMapperBolus.SetInputData(self.temporary_image)        
+        self.vtk_op.volumeMapperbl.SetInputData(self.temporary_image)        
         
         # Buildup of roadmap. Gets deactivated if whole cycle has been
         # completed
-        if self.checkbox_roadmap_buildup.isChecked() and \
-        self.roadmap_counter <= self.number_of_total_images:
-            self.vtk_op.roadmap_buildup(self.temporary_image) 
-            self.roadmap_counter = self.roadmap_counter+1
+        if self.checkbox_rm_buildup.isChecked() and \
+        self.rm_counter <= self.number_of_total_images:
+            self.vtk_op.rmBuildup(self.temporary_image) 
+            self.rm_counter = self.rm_counter+1
                 
         # Computation of real frame rate        
         self.label_frame_rate_display.setText(str(round(1.0 / (time.time() - self.previous_time), 2)))
         self.previous_time = time.time()   
         
         # Update image count display
-        image_count = str(self.count) + ' / ' + str(self.number_of_total_images)
+        image_count = str(self.image_count) + ' / ' + str(self.number_of_total_images)
         self.label_image_count_display.setText(str(image_count) )
         
         # Save screenshots of visualized MPI data if checked
         if self.checkbox_save_images.isChecked():
-            interface.screenshot_and_save(self)  
+            interface.screenshotAndSave(self)  
             
         # Render image
         self.iren.Initialize()
@@ -146,7 +173,27 @@ class MainWindow(Qt.QMainWindow):
             + str( round(fp[1], 1)) + ', ' \
             + str( round(fp[2], 1))         
         self.vtk_op.text_actor.SetInput( text )
-
+    
+    def updateVisualizationParameters(self):
+        # Compute visualization parameters 
+        diff = self.max_value - self.min_value        
+        self.op_max_bl = self.vtk_op.op_max_bl = self.diagram_op.op_max_bl = \
+            self.sl_pos_th_bl
+        self.op_max_rm = self.vtk_op.op_max_rm = self.diagram_op.op_max_rm = \
+            self.sl_pos_th_rm
+        
+        self.th_bl = self.vtk_op.th_bl = self.diagram_op.th_bl = \
+            self.min_value + diff * self.sl_pos_th_bl
+        self.th_rm = self.vtk_op.th_rm = self.diagram_op.th_rm = \
+            self.min_value + diff * self.sl_pos_th_rm
+            
+        self.ri_bl = self.vtk_op.ri_bl = self.diagram_op.ri_bl = \
+            diff * self.sl_pos_ri_bl
+        self.ri_rm = self.vtk_op.ri_rm = self.diagram_op.ri_rm = \
+            diff * self.sl_pos_ri_rm
+            
+        self.vtk_op.min_value = self.diagram_op.min_value = self.min_value
+        self.vtk_op.max_value = self.diagram_op.max_value = self.max_value
 
 if __name__ == "__main__":
     app = Qt.QApplication(sys.argv)

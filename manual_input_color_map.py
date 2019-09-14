@@ -51,7 +51,7 @@ class ColorMapSettingsView(Qt.QMainWindow):
         self.vl.addWidget(self.checkbox_scalar_bar)
         self.vl.addWidget(self.button_update_lookup_table)       
         
-        self.show()
+     
         
     def adaptColormapMinMax(self):
         try:         
@@ -70,13 +70,23 @@ class ColorMapSettingsView(Qt.QMainWindow):
         screen 
         """        
         if not self.checkbox_scalar_bar.isChecked():    
-            if self.currentData == 'bolus':                          
-                self.parent().vtk_op.ren.RemoveActor2D(self.parent().vtk_op.actor_scalar_bar_bolus)
-            if self.currentData == 'roadmap':                          
-                self.parent().vtk_op.ren.RemoveActor2D(self.parent().vtk_op.actor_scalar_bar_roadmap)
+            if self.currentData == 'bl':                          
+                self.parent().vtk_op.ren.RemoveActor2D(self.parent().vtk_op.actor_scalar_bar_bl)
+                if self.parent().vtk_op.bool_scalar_bar_rm == True:
+                    self.parent().vtk_op.actor_scalar_bar_rm.SetPosition(0.03, 0.12)
+                self.parent().vtk_op.bool_scalar_bar_bl = False
+            if self.currentData == 'rm':                          
+                self.parent().vtk_op.ren.RemoveActor2D(self.parent().vtk_op.actor_scalar_bar_rm)
+                self.parent().vtk_op.bool_scalar_bar_rm = False
+                if self.parent().vtk_op.bool_scalar_bar_bl == True:
+                    self.parent().vtk_op.actor_scalar_bar_bl.SetPosition(0.03, 0.12)
             self.parent().iren.Initialize()
             self.parent().iren.Start()
         else:
+            if self.currentData == 'bl':                          
+                self.parent().vtk_op.bool_scalar_bar_bl = True
+            if self.currentData == 'rm':                            
+                self.parent().vtk_op.bool_scalar_bar_rm = True
             self.parent().vtk_op.updateScalarBar(self.currentData, self.min_value, self.max_value) 
             self.parent().iren.Initialize()
             self.parent().iren.Start()  
@@ -101,7 +111,7 @@ class InputColorRGB(Qt.QMainWindow):
         self.setCentralWidget(self.frame)   
         self.vl.addWidget(self.lineedit_RGB)
         self.vl.addWidget(self.button_update_rgb_color)    
-        self.show()           
+                
 
     def adaptRGBColor(self):
         rgb_values = self.lineedit_RGB.text()
@@ -111,7 +121,7 @@ class InputColorRGB(Qt.QMainWindow):
             r = float(rgb_values_[0])
             g = float(rgb_values_[1])
             b = float(rgb_values_[2])                   
-            self.parent().vtk_op.set_mono_color(self.currentData, r, g, b)  
+            self.parent().vtk_op.setMonoColor(self.currentData, r, g, b)  
         except: 
             print("Enter valid values!")
         
