@@ -38,34 +38,74 @@ def enableDisableButtons(self, bool_value):
     for i in self.findChildren(Qt.QLineEdit):
         i.setEnabled(bool_value)
 
+def preImageAnalysisSettings(self):
+    index = self.combobox_pre_image_analysis.currentIndex()
+    if (index == 0):
+        # Pre-image analysis on
+        self.diagram_op.bool_create_histogram = True
+        self.diagram_op.bool_max_min = True
+        self.less_images = None
+        
+    if (index == 1):
+        # Only max/min
+        self.diagram_op.bool_create_histogram = False
+        self.diagram_op.bool_max_min = True
+        self.less_images = None
+        
+    if (index == 2): 
+        # Restrict to random selection of 100 images
+        self.diagram_op.bool_create_histogram = True
+        self.diagram_op.bool_max_min = True
+        self.diagram_op.less_images = 100
+    
+    if (index == 3):
+        # Pre-image analysis off
+        self.diagram_op.bool_create_histogram = False
+        self.diagram_op.bool_max_min = False
+        self.less_images = None   
+
 
 def setColor(self, name):
-    if name == 'bolus':
-        i = self.combobox_color_bolus.currentIndex()
-    if name == 'roadmap':
-        i = self.combobox_color_roadmap.currentIndex()
+    if name == 'bl':
+        i = self.combobox_color_bl.currentIndex()
+    if name == 'rm':
+        i = self.combobox_color_rm.currentIndex()
+        
     if (i == 0):
         # Set color red 
-        self.vtk_op.set_mono_color(name, 1, 0, 0)
+        self.vtk_op.setMonoColor(name, 1, 0, 0)
+        
     if (i == 1):
         # Set color blue 
-        self.vtk_op.set_mono_color(name, 0, 0, 1)
+        self.vtk_op.setMonoColor(name, 0, 0, 1)
+        
     if (i == 2):
-        self.vtk_op.set_mono_color(name, 0, 1, 0)       
+        self.vtk_op.setMonoColor(name, 0, 1, 0)     
+        
     if (i == 3):
-        # Set color map        
-        self.subwindow_color_map_settings = manual_input_color_map.ColorMapSettingsView(self, name)
+        # Set color map    
+        if name == 'bl':
+            self.subwindow_color_map_settings_bl.show()
+        if name == 'rm':
+            self.subwindow_color_map_settings_rm.show()
+        
     if (i == 4): 
-        # Enter RGB        
-        self.subwindow_RGB_color = manual_input_color_map.InputColorRGB(self, name)
+        if name == 'bl':    
+            self.subwindow_color_rgb_bl.show()
+        if name == 'rm':    
+            self.subwindow_color_rgb_rm.show() 
+    
+           
+            
+        
 
-def resetSlidersToMiddlePosition(self):
-    self.slider_steepness_ramp_roadmap.setProperty("value", 5000)
-    self.slider_steepness_ramp_bolus.setProperty("value", 5000)
-    self.slider_threshold_bolus.setProperty("value", 50)
-    self.slider_threshold_roadmap.setProperty("value", 50)
-    self.slider_opacity_bolus.setProperty("value", 50)
-    self.slider_opacity_roadmap.setProperty("value", 50)
+def resetSlidersToMidPosition(self):
+    self.slider_steepness_ramp_rm.setProperty("value", 10000*self.sl_pos_ri_rm)
+    self.slider_steepness_ramp_bl.setProperty("value", 10000*self.sl_pos_ri_bl)
+    self.slider_th_bl.setProperty("value", 100*self.sl_pos_th_bl)
+    self.slider_th_rm.setProperty("value", 100*self.sl_pos_th_rm)
+    self.slider_op_bl.setProperty("value", 100*self.sl_pos_op_bl)
+    self.slider_op_rm.setProperty("value", 100*self.sl_pos_op_bl)
     
 def setCameraOperation(self):
     le_input = self.lineedit_camera_control.text()
@@ -112,12 +152,12 @@ def setCameraOperation(self):
             print("Type in angle rotation in correct form!")
             
 def setAmbDiffSpec(self, name):        
-    if name == 'bolus': 
-        le = self.lineedit_amb_diff_spec_bolus
-        vp = self.vtk_op.volumePropertyBolus
-    if name == 'roadmap':
-        le = self.lineedit_amb_diff_spec_roadmap
-        vp = self.vtk_op.volumePropertyRoadmap
+    if name == 'bl': 
+        le = self.lineedit_amb_diff_spec_bl
+        vp = self.vtk_op.volumePropertybl
+    if name == 'rm':
+        le = self.lineedit_amb_diff_spec_rm
+        vp = self.vtk_op.volumePropertyrm
         
     i = self.combobox_amb_diff_spec.currentIndex()
     le_input = le.text()
@@ -150,12 +190,12 @@ def setAmbDiffSpec(self, name):
             print("Type in valid value!")
             
 def placeholderLineEditAmbDiffSpec(self, name, i):
-    if name == 'bolus': 
-        le = self.lineedit_amb_diff_spec_bolus
-        vp = self.vtk_op.volumePropertyBolus
-    if name == 'roadmap':
-        le = self.lineedit_amb_diff_spec_roadmap
-        vp = self.vtk_op.volumePropertyRoadmap
+    if name == 'bl': 
+        le = self.lineedit_amb_diff_spec_bl
+        vp = self.vtk_op.volumePropertybl
+    if name == 'rm':
+        le = self.lineedit_amb_diff_spec_rm
+        vp = self.vtk_op.volumePropertyrm
         
     if i == 1:   # Get currrent amb value        
         a = vp.GetAmbient()
@@ -221,11 +261,11 @@ def interpolateImageData(self, pressed):
             
             self.dims = [x, y, z]
             self.interpolation = True
-            self.vtk_op.dimension_vtk_data = self.dims            
+            self.vtk_op.dimensions_vtk_data = self.dims            
             
-            self.vtk_op.adjust_size_roadmap(self.dims)
-            self.count = self.count - 1
-            self.update_status()
+            self.vtk_op.adjustSizerm(self.dims)
+            self.image_count = self.image_count - 1
+            self.updateStatus()
             
             #Update image size text display
             image_size_text = str(self.dims[0])+'x'+str(self.dims[1])+'x'+str(self.dims[2])
@@ -238,92 +278,83 @@ def interpolateImageData(self, pressed):
     else: 
         self.dims = self.dims_original
         self.interpolation = False
-        self.vtk_op.dimension_vtk_data = self.dims_original
+        self.vtk_op.dimensions_vtk_data = self.dims_original
         
-        # Resize roadmap matrix    
-        self.vtk_op.adjust_size_roadmap(self.dims_original)
-        self.count = self.count - 1
-        self.update_status()
+        # Resize rm matrix    
+        self.vtk_op.adjustSizerm(self.dims_original)
+        self.image_count = self.image_count - 1
+        self.updateStatus()
         
         #Update image size on UI display
         image_size_text = str(self.dims[0])+'x'+str(self.dims[1])+'x'+str(self.dims[2])
         self.label_display_image_data_size.setText(image_size_text)
         
         self.iren.Initialize()
-        self.iren.Start()          
+        self.iren.Start()           
+ 
+def manualLookupTablebl(self):  
+    self.subwindow_lookup_table_bl.show()       
         
-def manualLookupTableBolus(self):  
-    if self.manual_lookup_table_bolus == None:
-        self.subwindow_lookup_table = manual_input_lookup_table.TableView(self, 'bolus', None, 4, 2)
-    else: 
-        count_rows = len([row[0] for row in self.manual_lookup_table_bolus])
-        self.subwindow_lookup_table = manual_input_lookup_table.TableView(self, 'bolus', \
-                            self.manual_lookup_table_bolus, count_rows, 2)  
-        
-def manualLookupTableRoadmap(self):  
-    if self.manual_lookup_table_roadmap == None:
-        self.subwindow_lookup_table = manual_input_lookup_table.TableView(self, 'roadmap', None,  4, 2)
-    else: 
-        count_rows = len([row[0] for row in self.manual_lookup_table_roadmap])
-        self.subwindow_lookup_table = manual_input_lookup_table.TableView(self, 'roadmap', self.manual_lookup_table_roadmap, count_rows, 2)        
+def manualLookupTablerm(self):  
+    self.subwindow_lookup_table_rm.show()        
 
-def functionSliderThresholdRoadmap(self, t):
-    scale_factor = ( self.diagram_op.max_image_value - self.diagram_op.min_image_value ) / 100.0    
-    self.threshold_roadmap = self.diagram_op.min_image_value + t  * scale_factor    
-    self.diagram_op.threshold_roadmap = self.threshold_roadmap
-    self.diagram_op.manual_lookup_table_roadmap = False
+def functionSliderThRm(self, t):
+    scale_factor = ( self.max_value - self.min_value ) / 100.0    
+    self.th_rm = self.min_value + t  * scale_factor    
+    self.diagram_op.th_rm = self.th_rm
+    self.diagram_op.manual_lookup_table_rm = False
     self.diagram_op.drawLookupTable()        
-    self.vtk_op.updateThresholdRoadmap(self.threshold_roadmap)     
+    self.vtk_op.updateThRm(self.th_rm)     
     
-def functionSliderThresholdBolus(self, t):
-    scale_factor = ( self.diagram_op.max_image_value - self.diagram_op.min_image_value ) / 100.0    
-    self.threshold_bolus = self.diagram_op.min_image_value + t  * scale_factor    
-    self.diagram_op.threshold_bolus = self.threshold_bolus
-    self.diagram_op.manual_lookup_table_bolus = False
+def functionSliderThBl(self, t):
+    scale_factor = ( self.max_value - self.min_value ) / 100.0    
+    self.th_bl = self.min_value + t  * scale_factor    
+    self.diagram_op.th_bl = self.th_bl
+    self.diagram_op.manual_lookup_table_bl = False
     self.diagram_op.drawLookupTable()     
-    self.vtk_op.updateThresholdBolus(self.threshold_bolus)        
+    self.vtk_op.updateThBl(self.th_bl)        
     
-def functionSliderSteepnessRampBolus(self, t):
-    scale_factor = ( self.diagram_op.max_image_value - self.diagram_op.min_image_value ) / 10000.0
-    self.intervall_bolus =  t * scale_factor      
-    self.diagram_op.intervall_bolus = self.intervall_bolus
-    self.diagram_op.manual_lookup_table_bolus = False
+def functionSliderRampIntervallBl(self, t):
+    scale_factor = ( self.max_value - self.min_value) / 10000.0
+    self.ri_bl =  (10001 - t) * scale_factor      
+    self.diagram_op.ri_bl = self.ri_bl
+    self.diagram_op.manual_lookup_table_bl = False
     self.diagram_op.drawLookupTable()        
-    self.vtk_op.updateSteepnessBolus(self.intervall_bolus)
+    self.vtk_op.updateRampIntervallBl(self.ri_bl)
     
-def functionSliderSteepnessRampRoadmap(self, t):
-    scale_factor = ( self.diagram_op.max_image_value - self.diagram_op.min_image_value ) / 10000.0
-    self.intervall_roadmap =  t * scale_factor    
-    self.diagram_op.intervall_roadmap = self.intervall_roadmap
-    self.diagram_op.manual_lookup_table_roadmap = False
+def functionSliderRampIntervallRm(self, t):
+    scale_factor = ( self.max_value - self.min_value ) / 10000.0
+    self.ri_rm =  (10001 - t) * scale_factor    
+    self.diagram_op.ri_rm = self.ri_rm
+    self.diagram_op.manual_lookup_table_rm = False
     self.diagram_op.drawLookupTable()    
-    self.vtk_op.updateSteepnessRoadmap(self.intervall_roadmap)
+    self.vtk_op.updateRampIntervallRm(self.ri_rm)
 
-def functionOpacityBolusSlider(self, t):
-    self.opacity_max_bolus = t / 100.0    
-    self.diagram_op.opacity_max_bolus = self.opacity_max_bolus
-    self.diagram_op.manual_lookup_table_bolus = False
+def functionSliderOpBl(self, t):
+    self.op_max_bl = t / 100.0    
+    self.diagram_op.op_max_bl = self.op_max_bl
+    self.diagram_op.manual_lookup_table_bl = False
     self.diagram_op.drawLookupTable()    
-    self.vtk_op.updateOpacityBolus(self.opacity_max_bolus)
+    self.vtk_op.updateOpBl(self.op_max_bl)
     
-def functionOpacityRoadmapSlider(self, t):
-    self.opacity_max_roadmap = t / 100.0    
-    self.diagram_op.opacity_max_roadmap = self.opacity_max_roadmap
-    self.diagram_op.manual_lookup_table_roadmap = False
+def functionSliderOpRm(self, t):
+    self.op_max_rm = t / 100.0    
+    self.diagram_op.op_max_rm = self.op_max_rm
+    self.diagram_op.manual_lookup_table_rm = False
     self.diagram_op.drawLookupTable()    
-    self.vtk_op.updateOpacityRoadmap(self.opacity_max_roadmap)    
+    self.vtk_op.updateOpRm(self.op_max_rm)    
 
 def checkboxShowRoadmap(self):      
     """ 
-    Function shows / hides the roadmap depending on the status 
+    Function shows / hides the rm depending on the status 
     of the corresponding checkbox
     """    
-    if not self.checkbox_roadmap_buildup.isChecked():                             
-        self.vtk_op.volumeMapperRoadmap.SetInputData(self.vtk_op.create_empty_image_data())         
+    if not self.checkbox_rm_buildup.isChecked():                             
+        self.vtk_op.volumeMapperrm.SetInputData(self.vtk_op.createEmptyImageData())         
         self.iren.Initialize()
         self.iren.Start()
     else:
-        self.vtk_op.roadmap_buildup(self.temporary_image)
+        self.vtk_op.rmBuildup(self.temporary_image)
         self.iren.Initialize()
         self.iren.Start()
         
@@ -338,7 +369,7 @@ def checkboxFOVFunction(self):
         self.iren.Initialize()
         self.iren.Start()
     else:
-        self.vtk_op.grid = self.vtk_op.create_grid(self.temporary_image)
+        self.vtk_op.grid = self.vtk_op.createGrid()
         self.vtk_op.ren.AddActor(self.vtk_op.grid)
         self.iren.Initialize()
         self.iren.Start()
@@ -349,11 +380,11 @@ def checkboxCameraSpecifications(self):
     rotation
     """
     if not self.checkbox_camera_specifications.isChecked():                                      
-        self.vtk_op.ren.RemoveActor(self.vtk_op.textActor) 
+        self.vtk_op.ren.RemoveActor(self.vtk_op.text_actor) 
         self.iren.Initialize()
         self.iren.Start()
     else:        
-        self.vtk_op.ren.AddActor(self.vtk_op.textActor)
+        self.vtk_op.ren.AddActor(self.vtk_op.text_actor)
         self.iren.Initialize()
         self.iren.Start()
 
@@ -373,35 +404,37 @@ def loadMHA(self):
     name = fname + "/1.mha"     
     if os.path.isfile(name):
         self.source_data_format = 'mha'
-        self.directory_source = fname
-        self.number_of_total_images =  mha_reader.get_number_of_image_data(self.directory_source)   
-        self.dims = mha_reader.return_dims_of_first_image(self.directory_source) 
+        self.directory_mha = fname
+        self.number_of_total_images =  mha_reader.getNumberImages(self.directory_mha)   
+        self.dims = mha_reader.returnDimsFirstImage(self.directory_mha) 
+        self.spacing = mha_reader.returnSpacingFirstImage(self.directory_mha) 
         self.dims_original = self.dims
-        self.roadmap_counter = 0
+        self.rm_counter = 0
+        self.screenshot_number = 0
         
-        # Image count for screenshots of visualization screen
-        self.count = 0
-        self.screenshot_number = 1          
-        self.roadmap_counter = 0
+        # Counter for images and screenshots
+        self.image_count = 0                
+        self.rm_counter = 0
         
         # Use of manual lookup tables
-        self.manual_lookup_table_bolus = None
-        self.manual_lookup_table_roadmap = None        
+        self.manual_lookup_table_bl = None
+        self.manual_lookup_table_rm = None        
         
         # Create histogram and determine min/max image values
-        self.diagram_op.computeHistogramDataBin(self.directory_source, 'mha')
+        
+        self.diagram_op.computeHistogramDataBin(self.directory_mha, 'mha')
         self.diagram_op.drawHistogram()   
         self.diagram_op.drawLookupTable()
         
         # Values are used to update the value range of the slider widgets
-        self.threshold_bolus =  self.diagram_op.threshold_bolus
-        self.threshold_roadmap =  self.diagram_op.threshold_roadmap
-        self.intervall_bolus =  self.diagram_op.intervall_bolus
-        self.intervall_roadmap =  self.diagram_op.intervall_roadmap       
+        self.th_bl =  self.diagram_op.th_bl
+        self.th_rm =  self.diagram_op.th_rm
+        self.ri_bl =  self.diagram_op.ri_bl
+        self.ri_rm =  self.diagram_op.ri_rm       
           
         # Create internal look up table for VTK pipeline                       
-        self.vtk_op.updateVTKparameters(self.diagram_op.min_image_value, 
-                self.diagram_op.max_image_value, self.dims)
+        self.vtk_op.updateVTKparameters(self.min_value, 
+                self.max_value, self.dims, self.spacing)
         
         # Update image count and image size display
         image_count = '1 / '+ str(self.number_of_total_images)      
@@ -410,9 +443,9 @@ def loadMHA(self):
         self.label_display_image_data_size.setText(image_size_text)
         
         # Enable all UI buttons, sliders and checkboxes
-        resetSlidersToMiddlePosition(self)
+        resetSlidersToMidPosition(self)
         enableDisableButtons(self,True) 
-        self.update_status()
+        self.updateStatus()
     else: 
         print("Use valid directory")        
 
@@ -421,71 +454,63 @@ def loadMDF(self):
     if fname != '':
         self.source_data_format = 'mdf'
         self.directory_mdf = fname
-        self.count = 0
+        self.image_count = 0
+        self.screenshot_number = 0
+        self.rm_counter = 0
         
         # Use of manual lookup tables
-        self.manual_lookup_table_bolus = None
-        self.manual_lookup_table_roadmap = None
+        self.manual_lookup_table_bl = None
+        self.manual_lookup_table_rm = None
         
         # Get number of images and image size
-        self.number_of_total_images = mdf_reader.get_number_of_images(self.directory_mdf)
-        self.dims = mdf_reader.return_dimensions_image_data(self.directory_mdf)  
-        self.dims_original = self.dims
-        self.roadmap_counter = 0
+        self.number_of_total_images = mdf_reader.getNumberImages(self.directory_mdf)
+        self.dims = mdf_reader.returnDimensionsImageData(self.directory_mdf) 
+        self.spacing = mdf_reader.returnSpacingImageData(self.directory_mdf) 
         
-        # Create histogram and determine min/max image values
-        self.diagram_op.computeHistogramDataBin(self.directory_mdf, 'mdf')    
+        # Variable to save original dims, if interpolation option is activated
+        self.dims_original = self.dims        
+        
+        # Create data bin and determine image value range
+        self.diagram_op.computeHistogramDataBin(self.directory_mdf, 'mdf')  
+        if self.diagram_op.bool_max_min == True:
+            self.min_value = self.diagram_op.min_value
+            self.max_value = self.diagram_op.max_value
+        
+        # Values are used to update the value range of the slider widgets
+        self.updateVisualizationParameters() 
+        
+        # Create histogram
         self.diagram_op.drawHistogram()  
         self.diagram_op.drawLookupTable() 
         
-        # Values are used to update the value range of the slider widgets
-        self.threshold_bolus =  self.diagram_op.threshold_bolus
-        self.threshold_roadmap =  self.diagram_op.threshold_roadmap
-        self.intervall_bolus =  self.diagram_op.intervall_bolus
-        self.intervall_roadmap =  self.diagram_op.intervall_roadmap     
-        
         # Create internal look up table for VTK pipeline                  
-        self.vtk_op.updateVTKparameters(self.diagram_op.min_image_value, 
-                self.diagram_op.max_image_value, self.dims)
+        self.vtk_op.updateVTKparameters(self.min_value, self.max_value, \
+                                        self.dims, self.spacing)
         
         # Update image count and image size display
         image_count = '1 / '+ str(self.number_of_total_images)        
         self.label_image_count_display.setText(image_count)  
-        image_size_text = str(self.dims[0])+'x'+str(self.dims[1])+'x'+str(self.dims[2])
+        image_size_text = str(self.dims[0])+'x'+str(self.dims[1])+ \
+                              'x'+str(self.dims[2]) 
         self.label_display_image_data_size.setText(image_size_text)
         
         # Enable all UI buttons, sliders and checkboxes
-        resetSlidersToMiddlePosition(self)
+        resetSlidersToMidPosition(self)
         enableDisableButtons(self, True) 
         
         # Time stamps are used for computation of real frame rate    
-        self.update_status()
+        self.updateStatus()
         
 def setScreenshotSaveDirectory(self):
     """
     Function opens a simple diaglogue window to select a directory, where 
     subsequently captured screenshots can be saved
     """    
-    fname = Qt.QFileDialog.getExistingDirectory(self, 'Open file', 'c:\\')   
-    self.screenshot_number = 0     
+    fname = Qt.QFileDialog.getExistingDirectory(self, 'Open file', 'c:\\')         
     self.directory_output = fname     
     self.checkbox_save_images.setChecked(True)
     
-    
 
-def functionCheckboxScalarBar(self):
-    """ 
-    This function is used to show / hide scalar bar on the visualization 
-    screen 
-    """
-    if not self.checkbox_scalar_bar.isChecked():                             
-        self.vtk_op.ren.RemoveActor2D(self.vtk_op.scalar_bar)
-        self.iren.Initialize()
-        self.iren.Start()
-    else:
-        self.vtk_op.updateScalarBar()
-        self.iren.Initialize()
-        self.iren.Start()   
         
 def pauseAndPlay(self, pressed):     
     if pressed:
@@ -497,65 +522,65 @@ def pauseAndPlay(self, pressed):
         self.button_start_stop.setIcon(self.style().standardIcon(Qt.QStyle.SP_MediaPlay))        
     
 def showNextImage(self):    
-    self.count = self.count + 1        
-    if self.count > self.number_of_total_images:
-        self.count = 1           
+    self.image_count = self.image_count + 1        
+    if self.image_count > self.number_of_total_images:
+        self.image_count = 1           
     if self.source_data_format == 'mha':            
         self.temporary_image = \
-        mha_reader.create_VTK_data_from_mha_file(self.directory_source, \
-                                      self.count, self.interpolation, \
+        mha_reader.createVTKDataFromMHAFile(self.directory_mha, \
+                                      self.image_count, self.interpolation, \
                                       self.dims)          
     if self.source_data_format == 'mdf':            
-        self.temporary_image = mdf_reader.create_VTK_data_from_HDF(self.directory_mdf, \
-                                 self.count-1, self.interpolation, \
+        self.temporary_image = mdf_reader.createVTKDataFromHDF(self.directory_mdf, \
+                                 self.image_count-1, self.interpolation, \
                                  self.dims)        
-    self.vtk_op.volumeMapperBolus.SetInputData(self.temporary_image)       
-    if self.checkbox_roadmap_buildup.isChecked() and \
-    self.roadmap_counter < self.number_of_total_images: 
-        self.vtk_op.roadmap_buildup(self.temporary_image) 
-        self.roadmap_counter = self.roadmap_counter+1
+    self.vtk_op.volumeMapperbl.SetInputData(self.temporary_image)       
+    if self.checkbox_rm_buildup.isChecked() and \
+    self.rm_counter < self.number_of_total_images: 
+        self.vtk_op.rmBuildup(self.temporary_image) 
+        self.rm_counter = self.rm_counter+1
         
     # Save screenshots of visualized MPI data
     if self.checkbox_save_images.isChecked():
-        screenshot_and_save(self)               
+        screenshotAndSave(self)               
     self.iren.Initialize()
     self.iren.Start()    
     
     # Update image count display
-    image_count = str(self.count) + ' / ' + str(self.number_of_total_images)
+    image_count = str(self.image_count) + ' / ' + str(self.number_of_total_images)
     self.label_image_count_display.setText(str(image_count) )
     
 def showPreviousImage(self):
-    self.count = self.count - 1     
-    if self.count == 0:        
-        self.count = self.number_of_total_images 
+    self.image_count = self.image_count - 1     
+    if self.image_count == 0:        
+        self.image_count = self.number_of_total_images 
         
     if self.source_data_format == 'mha':            
-        self.temporary_image = mha_reader.create_VTK_data_from_mha_file(self.directory_source, self.count, self.interpolation, self.dims)
+        self.temporary_image = mha_reader.createVTKDataFromMHAFile(self.directory_mha, self.image_count, self.interpolation, self.dims)
         
     if self.source_data_format == 'mdf':            
-        self.temporary_image = mdf_reader.create_VTK_data_from_HDF(self.directory_mdf, self.count-1, self.interpolation, self.dims)        
+        self.temporary_image = mdf_reader.createVTKDataFromHDF(self.directory_mdf, self.image_count-1, self.interpolation, self.dims)        
     
-    self.vtk_op.volumeMapperBolus.SetInputData(self.temporary_image)     
-    self.roadmap_counter = self.roadmap_counter-1
+    self.vtk_op.volumeMapperbl.SetInputData(self.temporary_image)     
+    self.rm_counter = self.rm_counter-1
     
     # Save screenshots of visualized MPI data
     if self.checkbox_save_images.isChecked():
-        screenshot_and_save(self)     
+        screenshotAndSave(self)     
     
     self.iren.Initialize()
     self.iren.Start()    
 
     # Update image count display
-    image_count = str(self.count) + ' / ' + str(self.number_of_total_images)
+    image_count = str(self.image_count) + ' / ' + str(self.number_of_total_images)
     self.label_image_count_display.setText(str(image_count) )
         
-def check_output_directory(self):    
-    if self.directory_output != "":        
+def checkOutputDirectory(self):    
+    if self.directory_output != None:        
         print('Images will be saved to: ', self.directory_output)        
     else:         
         if self.source_data_format == 'mha':
-            path_to_source = os.path.normpath(self.directory_source)            
+            path_to_source = os.path.normpath(self.directory_mha)            
         if self.source_data_format == 'mdf':
             path_to_source = os.path.normpath(self.directory_mdf)            
             path_to_source = os.path.dirname(os.path.realpath(path_to_source))        
@@ -565,25 +590,25 @@ def check_output_directory(self):
         self.directory_output = path_to_source + "/" + temp_time
         print('No output adress was given. Images will be saved to: ', self.directory_output)         
         
-def screenshot_and_save(self):    
+def screenshotAndSave(self):    
     """ 
     Function saves PNG image of current visualization screen to a defined directory. 
     If no directory is given, a new folder (name composed of current date and time) 
     will be created in the source directory. 
     """
-    check_output_directory(self)
+    checkOutputDirectory(self)
     if (os.path.isdir(self.directory_output)):
         name_output = "/%d.png" %self.screenshot_number
         string_directory = self.directory_output + name_output
         self.vtk_op.saveScreenshot(string_directory)
         self.screenshot_number = self.screenshot_number + 1
     
-def save_roapmap(self):        
+def saveRoapmap(self):        
     fileName, _ = Qt.QFileDialog.getSaveFileName(self, \
      "QFileDialog.getSaveFileName()","","Input Files(*.mha)")       
-    self.vtk_op.writer_roadmap.SetInputData(self.vtk_op.imageData1)
-    self.vtk_op.writer_roadmap.SetFileName(fileName)
-    self.vtk_op.writer_roadmap.Write()   
+    self.vtk_op.writer_rm.SetInputData(self.vtk_op.image_data_rm)
+    self.vtk_op.writer_rm.SetFileName(fileName)
+    self.vtk_op.writer_rm.Write()   
 
     
     
@@ -594,8 +619,16 @@ def initUI(self):
     This function defines the architecture of the GUI and connects 
     the created QT widgets to the corresponding functions defined in this 
     file. The various QT objects are arranged along vertical and horizontal
-    axes.
+    axes.   
     """ 
+    
+    self.subwindow_color_map_settings_bl = manual_input_color_map.ColorMapSettingsView(self, 'bl')
+    self.subwindow_color_map_settings_rm = manual_input_color_map.ColorMapSettingsView(self, 'rm')
+    self.subwindow_color_rgb_bl = manual_input_color_map.InputColorRGB(self, 'bl')
+    self.subwindow_color_rgb_rm = manual_input_color_map.InputColorRGB(self, 'rm')
+    
+    self.subwindow_lookup_table_bl = manual_input_lookup_table.TableView(self, 'bl')
+    self.subwindow_lookup_table_rm = manual_input_lookup_table.TableView(self, 'rm')
     
     self.label_placeholder = Qt.QLabel()
     
@@ -622,13 +655,11 @@ def initUI(self):
     self.button_saving_directory_screenshots = Qt.QPushButton('Choose screenshot directory', self)        
     self.button_saving_directory_screenshots.clicked.connect(partial(setScreenshotSaveDirectory, self))    
     
-    self.checkbox_roadmap_buildup = Qt.QCheckBox("Roadmap build-up", self)
-    self.checkbox_roadmap_buildup.setChecked(True)
-    self.checkbox_roadmap_buildup.stateChanged.connect(partial(checkboxShowRoadmap, self))
+    self.checkbox_rm_buildup = Qt.QCheckBox("Roadmap build-up", self)
+    self.checkbox_rm_buildup.setChecked(True)
+    self.checkbox_rm_buildup.stateChanged.connect(partial(checkboxShowRoadmap, self))
     
-    self.checkbox_scalar_bar = Qt.QCheckBox("Show scalar bar", self)
-    self.checkbox_scalar_bar.setChecked(True)
-    self.checkbox_scalar_bar.stateChanged.connect(partial(functionCheckboxScalarBar, self))
+
     
     self.checkbox_FOV = Qt.QCheckBox("Show FOV", self)
     self.checkbox_FOV.setChecked(False)
@@ -636,14 +667,16 @@ def initUI(self):
     
     self.checkbox_camera_specifications = Qt.QCheckBox("Show camera specifications", self)
     self.checkbox_camera_specifications.setChecked(True)
-    self.checkbox_camera_specifications.stateChanged.connect(partial(checkboxCameraSpecifications, self))            
+    self.checkbox_camera_specifications.stateChanged.connect(partial(checkboxCameraSpecifications, self))  
+
+              
     
-    self.button_save_roadmap = Qt.QPushButton('Save roadmap')
-    self.button_save_roadmap.clicked.connect( partial(save_roapmap, self) )     
+    self.button_save_rm = Qt.QPushButton('Save roadmap')
+    self.button_save_rm.clicked.connect( partial(saveRoapmap, self) )     
     
     self.checkbox_save_images = Qt.QCheckBox("Save screenshots", self)
     self.checkbox_save_images.setChecked(False)
-    self.checkbox_save_images.stateChanged.connect(partial(screenshot_and_save, self)) 
+    self.checkbox_save_images.stateChanged.connect(partial(screenshotAndSave, self)) 
 
     self.button_start_stop = Qt.QPushButton('', self)
     self.button_start_stop.setCheckable(True)    
@@ -658,61 +691,61 @@ def initUI(self):
     self.button_previous_image.setIcon(self.style().standardIcon(Qt.QStyle.SP_MediaSkipBackward))    
     self.button_previous_image.clicked.connect(partial(showPreviousImage, self)  )
 
-    self.label_threshold_slider = Qt.QLabel(self)        
-    self.label_threshold_slider.setText("Threshold")   
-    self.label_threshold_slider.setFixedWidth(125) 
+    self.label_th_slider = Qt.QLabel(self)        
+    self.label_th_slider.setText("Threshold")   
+    self.label_th_slider.setFixedWidth(125) 
     
-    self.slider_steepness_ramp_roadmap = Qt.QSlider(self)
-    self.slider_steepness_ramp_roadmap.setMinimum(1)
-    self.slider_steepness_ramp_roadmap.setMaximum(10000)
-    self.slider_steepness_ramp_roadmap.setProperty("value", 5000)
-    self.slider_steepness_ramp_roadmap.setOrientation(QtCore.Qt.Horizontal)
-    self.slider_steepness_ramp_roadmap.setObjectName("slider_steepness_ramp_roadmap")
-    self.slider_steepness_ramp_roadmap.valueChanged.connect(partial(functionSliderSteepnessRampRoadmap, self))  
+    self.slider_steepness_ramp_rm = Qt.QSlider(self)
+    self.slider_steepness_ramp_rm.setMinimum(1)
+    self.slider_steepness_ramp_rm.setMaximum(10000)
+    self.slider_steepness_ramp_rm.setProperty("value", 10000*self.sl_pos_ri_rm)
+    self.slider_steepness_ramp_rm.setOrientation(QtCore.Qt.Horizontal)
+    self.slider_steepness_ramp_rm.setObjectName("slider_steepness_ramp_rm")
+    self.slider_steepness_ramp_rm.valueChanged.connect(partial(functionSliderRampIntervallRm, self))  
     
-    self.slider_steepness_ramp_bolus = Qt.QSlider(self)
-    self.slider_steepness_ramp_bolus.setMinimum(1)
-    self.slider_steepness_ramp_bolus.setMaximum(10000)
-    self.slider_steepness_ramp_bolus.setProperty("value", 5000)
-    self.slider_steepness_ramp_bolus.setOrientation(QtCore.Qt.Horizontal)
-    self.slider_steepness_ramp_bolus.setObjectName("slider_threshold_bolus")
-    self.slider_steepness_ramp_bolus.valueChanged.connect(partial(functionSliderSteepnessRampBolus, self) )  
+    self.slider_steepness_ramp_bl = Qt.QSlider(self)
+    self.slider_steepness_ramp_bl.setMinimum(1)
+    self.slider_steepness_ramp_bl.setMaximum(10000)
+    self.slider_steepness_ramp_bl.setProperty("value", 10000*self.sl_pos_ri_bl)
+    self.slider_steepness_ramp_bl.setOrientation(QtCore.Qt.Horizontal)
+    self.slider_steepness_ramp_bl.setObjectName("slider_th_bl")
+    self.slider_steepness_ramp_bl.valueChanged.connect(partial(functionSliderRampIntervallBl, self) )  
             
-    self.slider_threshold_roadmap = Qt.QSlider(self)
-    self.slider_threshold_roadmap.setMaximum(100)
-    self.slider_threshold_roadmap.setProperty("value", 50)
-    self.slider_threshold_roadmap.setOrientation(QtCore.Qt.Horizontal)
-    self.slider_threshold_roadmap.setObjectName("slider_threshold_bolus")
-    self.slider_threshold_roadmap.valueChanged.connect(partial(functionSliderThresholdRoadmap, self))
+    self.slider_th_rm = Qt.QSlider(self)
+    self.slider_th_rm.setMaximum(100)    
+    self.slider_th_rm.setProperty("value", 100*self.sl_pos_th_rm)
+    self.slider_th_rm.setOrientation(QtCore.Qt.Horizontal)
+    self.slider_th_rm.setObjectName("slider_th_bl")
+    self.slider_th_rm.valueChanged.connect(partial(functionSliderThRm, self))
     
-    self.slider_threshold_bolus = Qt.QSlider(self)
-    self.slider_threshold_bolus.setMaximum(100)
-    self.slider_threshold_bolus.setProperty("value", 50)
-    self.slider_threshold_bolus.setOrientation(QtCore.Qt.Horizontal)
-    self.slider_threshold_bolus.setObjectName("slider_threshold_bolus")
-    self.slider_threshold_bolus.valueChanged.connect(partial(functionSliderThresholdBolus, self) )        
+    self.slider_th_bl = Qt.QSlider(self)
+    self.slider_th_bl.setMaximum(100)    
+    self.slider_th_bl.setProperty("value", 100*self.sl_pos_th_bl)
+    self.slider_th_bl.setOrientation(QtCore.Qt.Horizontal)
+    self.slider_th_bl.setObjectName("slider_th_bl")
+    self.slider_th_bl.valueChanged.connect(partial(functionSliderThBl, self) )        
     
-    self.label_opacity_slider = Qt.QLabel(self)        
-    self.label_opacity_slider.setText("Opacity");   
-    self.label_opacity_slider.setFixedWidth(125) 
+    self.label_op_slider = Qt.QLabel(self)        
+    self.label_op_slider.setText("Opacity")   
+    self.label_op_slider.setFixedWidth(125) 
     
     self.label_steepness_ramp = Qt.QLabel(self)        
-    self.label_steepness_ramp.setText("Steepness ramp");   
+    self.label_steepness_ramp.setText("Intervall ramp");   
     self.label_steepness_ramp.setFixedWidth(125)    
     
-    self.slider_opacity_bolus = Qt.QSlider(self)
-    self.slider_opacity_bolus.setMaximum(100)
-    self.slider_opacity_bolus.setProperty("value", 50)
-    self.slider_opacity_bolus.setOrientation(QtCore.Qt.Horizontal)
-    self.slider_opacity_bolus.setObjectName("slider_opacity_bolus")     
-    self.slider_opacity_bolus.valueChanged.connect(partial(functionOpacityBolusSlider, self))    
+    self.slider_op_bl = Qt.QSlider(self)
+    self.slider_op_bl.setMaximum(100)
+    self.slider_op_bl.setProperty("value", 100*self.sl_pos_op_bl)
+    self.slider_op_bl.setOrientation(QtCore.Qt.Horizontal)
+    self.slider_op_bl.setObjectName("slider_op_bl")     
+    self.slider_op_bl.valueChanged.connect(partial(functionSliderOpBl, self))    
     
-    self.slider_opacity_roadmap = Qt.QSlider(self)
-    self.slider_opacity_roadmap.setMaximum(100)
-    self.slider_opacity_roadmap.setProperty("value", 50)
-    self.slider_opacity_roadmap.setOrientation(QtCore.Qt.Horizontal)
-    self.slider_opacity_roadmap.setObjectName("slider_opacity_roadmap")        
-    self.slider_opacity_roadmap.valueChanged.connect(partial(functionOpacityRoadmapSlider, self))       
+    self.slider_op_rm = Qt.QSlider(self)
+    self.slider_op_rm.setMaximum(100)
+    self.slider_op_rm.setProperty("value", 100*self.sl_pos_op_rm)
+    self.slider_op_rm.setOrientation(QtCore.Qt.Horizontal)
+    self.slider_op_rm.setObjectName("slider_op_rm")        
+    self.slider_op_rm.valueChanged.connect(partial(functionSliderOpRm, self))       
     
     self.label_playback_speed = Qt.QLabel(self)  
     self.label_playback_speed.setText("Playback Speed") 
@@ -727,15 +760,15 @@ def initUI(self):
     self.slider_playback_speed.setTickPosition(Qt.QSlider.TicksBelow)         
     self.slider_playback_speed.valueChanged.connect(partial(setPlaybackSpeed1, self))  
 
-    self.button_activate_manual_lookup_table_bolus = Qt.QPushButton('', self)
-    self.button_activate_manual_lookup_table_bolus.setText("Define lookup table bolus")    
-    self.button_activate_manual_lookup_table_bolus.\
-        clicked.connect( partial(manualLookupTableBolus, self)  )
+    self.button_activate_manual_lookup_table_bl = Qt.QPushButton('', self)
+    self.button_activate_manual_lookup_table_bl.setText("Define lookup table bolus")    
+    self.button_activate_manual_lookup_table_bl.\
+        clicked.connect( partial(manualLookupTablebl, self)  )
         
-    self.button_activate_manual_lookup_table_roadmap = Qt.QPushButton('', self)
-    self.button_activate_manual_lookup_table_roadmap.setText("Define lookup table roadmap")    
-    self.button_activate_manual_lookup_table_roadmap.\
-        clicked.connect( partial(manualLookupTableRoadmap, self)  )    
+    self.button_activate_manual_lookup_table_rm = Qt.QPushButton('', self)
+    self.button_activate_manual_lookup_table_rm.setText("Define lookup table roadmap")    
+    self.button_activate_manual_lookup_table_rm.\
+        clicked.connect( partial(manualLookupTablerm, self)  )    
     
     self.label_camera_operations = Qt.QLabel()
     self.label_camera_operations.setText("Manual camera control")
@@ -747,15 +780,15 @@ def initUI(self):
     self.label_manual_defintion_lookup_table.setText("Manual definition")  
     self.label_manual_defintion_lookup_table.setWordWrap(True)   
     
-    self.label_text_above_bolus_slider = Qt.QLabel()
-    self.label_text_above_bolus_slider.setText("Bolus")
-    self.label_text_above_bolus_slider.setStyleSheet('color: grey')    
-    self.label_text_above_bolus_slider.setAlignment(Qt.Qt.AlignCenter)
+    self.label_text_above_bl_slider = Qt.QLabel()
+    self.label_text_above_bl_slider.setText("Bolus")
+    self.label_text_above_bl_slider.setStyleSheet('color: grey')    
+    self.label_text_above_bl_slider.setAlignment(Qt.Qt.AlignCenter)
     
-    self.label_text_above_roadmap_slider = Qt.QLabel()
-    self.label_text_above_roadmap_slider.setText("Roadmap")
-    self.label_text_above_roadmap_slider.setStyleSheet('color: grey')    
-    self.label_text_above_roadmap_slider.setAlignment(Qt.Qt.AlignCenter)
+    self.label_text_above_rm_slider = Qt.QLabel()
+    self.label_text_above_rm_slider.setText("Roadmap")
+    self.label_text_above_rm_slider.setStyleSheet('color: grey')    
+    self.label_text_above_rm_slider.setAlignment(Qt.Qt.AlignCenter)
     
     self.label_text_above_image_data = Qt.QLabel()
     self.label_text_above_image_data.setText("Image data")
@@ -800,24 +833,24 @@ def initUI(self):
     self.button_set_camera_operation.clicked.connect(partial(setCameraOperation, self))
     self.button_set_camera_operation.setText("SET")   
     
-    self.button_set_amb_diff_spec_roadmap = Qt.QPushButton('Dialog', self)   
-    self.button_set_amb_diff_spec_roadmap.clicked.connect(partial(setAmbDiffSpec, self, 'roadmap'))
-    self.button_set_amb_diff_spec_roadmap.setText("SET")   
+    self.button_set_amb_diff_spec_rm = Qt.QPushButton('Dialog', self)   
+    self.button_set_amb_diff_spec_rm.clicked.connect(partial(setAmbDiffSpec, self, 'rm'))
+    self.button_set_amb_diff_spec_rm.setText("SET")   
     
-    self.button_set_amb_diff_spec_bolus = Qt.QPushButton('Dialog', self)   
-    self.button_set_amb_diff_spec_bolus.clicked.connect(partial(setAmbDiffSpec, self, 'bolus'))
-    self.button_set_amb_diff_spec_bolus.setText("SET")   
+    self.button_set_amb_diff_spec_bl = Qt.QPushButton('Dialog', self)   
+    self.button_set_amb_diff_spec_bl.clicked.connect(partial(setAmbDiffSpec, self, 'bl'))
+    self.button_set_amb_diff_spec_bl.setText("SET")   
     
     self.lineedit_camera_control = Qt.QLineEdit(self)
     self.lineedit_camera_control.setPlaceholderText('x, y, z')  
     
-    self.lineedit_amb_diff_spec_roadmap = Qt.QLineEdit(self)    
-    self.lineedit_amb_diff_spec_roadmap.setMinimumSize(10, 10)
-    self.lineedit_amb_diff_spec_roadmap.setSizePolicy(Qt.QSizePolicy.Minimum, Qt.QSizePolicy.Minimum)
+    self.lineedit_amb_diff_spec_rm = Qt.QLineEdit(self)    
+    self.lineedit_amb_diff_spec_rm.setMinimumSize(10, 10)
+    self.lineedit_amb_diff_spec_rm.setSizePolicy(Qt.QSizePolicy.Minimum, Qt.QSizePolicy.Minimum)
     
-    self.lineedit_amb_diff_spec_bolus = Qt.QLineEdit(self)    
-    self.lineedit_amb_diff_spec_bolus.setMinimumSize(10, 10)
-    self.lineedit_amb_diff_spec_bolus.setSizePolicy(Qt.QSizePolicy.Minimum, Qt.QSizePolicy.Minimum)
+    self.lineedit_amb_diff_spec_bl = Qt.QLineEdit(self)    
+    self.lineedit_amb_diff_spec_bl.setMinimumSize(10, 10)
+    self.lineedit_amb_diff_spec_bl.setSizePolicy(Qt.QSizePolicy.Minimum, Qt.QSizePolicy.Minimum)
     
     self.label_image_data_size = Qt.QLabel(self)
     self.label_image_data_size.setText("Current image data size:  ")
@@ -838,49 +871,56 @@ def initUI(self):
     self.combobox_amb_diff_spec.addItem("Set Diffuse")
     self.combobox_amb_diff_spec.addItem("Set Specular")
     self.combobox_amb_diff_spec.model().item(0).setEnabled(False)    
-    self.combobox_amb_diff_spec.currentIndexChanged.connect(partial(placeholderLineEditAmbDiffSpec, self, 'roadmap'))
-    self.combobox_amb_diff_spec.currentIndexChanged.connect(partial(placeholderLineEditAmbDiffSpec, self, 'bolus'))
+    self.combobox_amb_diff_spec.currentIndexChanged.connect(partial(placeholderLineEditAmbDiffSpec, self, 'rm'))
+    self.combobox_amb_diff_spec.currentIndexChanged.connect(partial(placeholderLineEditAmbDiffSpec, self, 'bl'))
     
-    self.combobox_color_bolus = Qt.QComboBox()      
-    self.combobox_color_bolus.addItem("Red")
-    self.combobox_color_bolus.addItem("Blue")
-    self.combobox_color_bolus.addItem("Green")
-    self.combobox_color_bolus.addItem("Activate colormap")
-    self.combobox_color_bolus.addItem("Enter RGB ...")
-    self.combobox_color_bolus.currentIndexChanged.connect(partial(setColor, self, 'bolus'))
+    self.combobox_color_bl = Qt.QComboBox()      
+    self.combobox_color_bl.addItem("Red")
+    self.combobox_color_bl.addItem("Blue")
+    self.combobox_color_bl.addItem("Green")
+    self.combobox_color_bl.addItem("Activate colormap")
+    self.combobox_color_bl.addItem("Enter RGB ...")
+    self.combobox_color_bl.currentIndexChanged.connect(partial(setColor, self, 'bl'))
      
-    self.combobox_color_roadmap = Qt.QComboBox()   
-    self.combobox_color_roadmap.addItem("Red")   
-    self.combobox_color_roadmap.addItem("Blue")    
-    self.combobox_color_roadmap.addItem("Green")
-    self.combobox_color_roadmap.addItem("Activate colormap")
-    self.combobox_color_roadmap.addItem("Enter RGB ...")
-    self.combobox_color_roadmap.setCurrentIndex(1)
-    self.combobox_color_roadmap.currentIndexChanged.connect(partial(setColor, self, 'roadmap'))
+    self.combobox_color_rm = Qt.QComboBox()   
+    self.combobox_color_rm.addItem("Red")   
+    self.combobox_color_rm.addItem("Blue")    
+    self.combobox_color_rm.addItem("Green")
+    self.combobox_color_rm.addItem("Activate colormap")
+    self.combobox_color_rm.addItem("Enter RGB ...")
+    self.combobox_color_rm.setCurrentIndex(1)
+    self.combobox_color_rm.activated.connect(partial(setColor, self, 'rm'))
+    
+    self.combobox_pre_image_analysis = Qt.QComboBox()   
+    self.combobox_pre_image_analysis.addItem("Pre-image analysis active")   
+    self.combobox_pre_image_analysis.addItem("Only max/min")    
+    self.combobox_pre_image_analysis.addItem("Restrict to 100 images (random selection)")
+    self.combobox_pre_image_analysis.addItem("Pre-image analysis deactivated")    
+    self.combobox_pre_image_analysis.setCurrentIndex(0)
+    self.combobox_pre_image_analysis.activated.connect(partial(preImageAnalysisSettings, self))
     
     self.label_color = Qt.QLabel(self)        
-    self.label_color.setText("Color");   
+    self.label_color.setText("Color")   
     self.label_color.setFixedWidth(125)  
-    
-
-
 
     """
     The following lines define the spatial relation of the defined QT widgets 
     along horizontal and vertical axes (--> Qt.QHBoxLayout / Qt.QVBoxLayout)
     """
+    
+    
 
     self.hl_load_buttons = Qt.QHBoxLayout()
     self.hl_load_buttons.addWidget(self.button_load_mha_files)
     self.hl_load_buttons.addWidget(self.button_load_mdf_file)    
     self.hl_load_buttons.addWidget(self.button_saving_directory_screenshots)    
-    self.hl_load_buttons.addWidget(self.button_save_roadmap)     
+    self.hl_load_buttons.addWidget(self.button_save_rm) 
+    self.hl_load_buttons.addWidget(self.combobox_pre_image_analysis  )  
     
     self.hl_checkboxes = Qt.QHBoxLayout()
     self.hl_checkboxes.addWidget(self.checkbox_save_images)
     self.hl_checkboxes.addWidget(self.checkbox_FOV)
-    self.hl_checkboxes.addWidget(self.checkbox_roadmap_buildup)
-    self.hl_checkboxes.addWidget(self.checkbox_scalar_bar)
+    self.hl_checkboxes.addWidget(self.checkbox_rm_buildup)    
     self.hl_checkboxes.addWidget(self.checkbox_camera_specifications)    
     
     self.hl_playback_settings = Qt.QHBoxLayout()
@@ -903,34 +943,34 @@ def initUI(self):
     self.grid_camera_operations.addWidget(self.button_set_camera_operation, 1, 6, 1, 3)       
         
     self.hl_manual_lookup_tables = Qt.QHBoxLayout()
-    self.hl_manual_lookup_tables.addWidget(self.button_activate_manual_lookup_table_bolus)
-    self.hl_manual_lookup_tables.addWidget(self.button_activate_manual_lookup_table_roadmap)   
+    self.hl_manual_lookup_tables.addWidget(self.button_activate_manual_lookup_table_bl)
+    self.hl_manual_lookup_tables.addWidget(self.button_activate_manual_lookup_table_rm)   
         
     self.slider_block = Qt.QGridLayout()    
-    self.slider_block.addWidget(self.label_text_above_bolus_slider, 1, 2, 1, 2)
-    self.slider_block.addWidget(self.label_text_above_roadmap_slider, 1, 4, 1, 2)  
+    self.slider_block.addWidget(self.label_text_above_bl_slider, 1, 2, 1, 2)
+    self.slider_block.addWidget(self.label_text_above_rm_slider, 1, 4, 1, 2)  
     
     self.slider_block.addWidget(self.label_color, 4, 1)
-    self.slider_block.addWidget(self.combobox_color_bolus, 4, 2, 2, 2)
-    self.slider_block.addWidget(self.combobox_color_roadmap, 4, 4, 2, 2)    
+    self.slider_block.addWidget(self.combobox_color_bl, 4, 2, 2, 2)
+    self.slider_block.addWidget(self.combobox_color_rm, 4, 4, 2, 2)    
     
-    self.slider_block.addWidget(self.label_threshold_slider, 6, 1)
-    self.slider_block.addWidget(self.slider_threshold_bolus, 6, 2, 2, 2)
-    self.slider_block.addWidget(self.slider_threshold_roadmap, 6, 4, 2, 2)       
-    self.slider_block.addWidget(self.label_opacity_slider, 8, 1)
-    self.slider_block.addWidget(self.slider_opacity_bolus, 8, 2, 2,2)
-    self.slider_block.addWidget(self.slider_opacity_roadmap, 8, 4, 2, 2)    
+    self.slider_block.addWidget(self.label_th_slider, 6, 1)
+    self.slider_block.addWidget(self.slider_th_bl, 6, 2, 2, 2)
+    self.slider_block.addWidget(self.slider_th_rm, 6, 4, 2, 2)       
+    self.slider_block.addWidget(self.label_op_slider, 8, 1)
+    self.slider_block.addWidget(self.slider_op_bl, 8, 2, 2,2)
+    self.slider_block.addWidget(self.slider_op_rm, 8, 4, 2, 2)    
     self.slider_block.addWidget(self.label_steepness_ramp, 10, 1)    
-    self.slider_block.addWidget(self.slider_steepness_ramp_bolus, 10, 2, 2, 2)
-    self.slider_block.addWidget(self.slider_steepness_ramp_roadmap, 10, 4, 2, 2)     
+    self.slider_block.addWidget(self.slider_steepness_ramp_bl, 10, 2, 2, 2)
+    self.slider_block.addWidget(self.slider_steepness_ramp_rm, 10, 4, 2, 2)     
     self.slider_block.addWidget(self.label_manual_defintion_lookup_table, 12, 1)    
-    self.slider_block.addWidget(self.button_activate_manual_lookup_table_bolus, 12, 2, 1, 2)
-    self.slider_block.addWidget(self.button_activate_manual_lookup_table_roadmap, 12, 4, 1, 2)  
+    self.slider_block.addWidget(self.button_activate_manual_lookup_table_bl, 12, 2, 1, 2)
+    self.slider_block.addWidget(self.button_activate_manual_lookup_table_rm, 12, 4, 1, 2)  
     self.slider_block.addWidget(self.combobox_amb_diff_spec, 14, 1) 
-    self.slider_block.addWidget(self.lineedit_amb_diff_spec_bolus, 14, 2, 1, 1) 
-    self.slider_block.addWidget(self.button_set_amb_diff_spec_bolus, 14, 3, 1, 1) 
-    self.slider_block.addWidget(self.lineedit_amb_diff_spec_roadmap, 14, 4, 1, 1) 
-    self.slider_block.addWidget(self.button_set_amb_diff_spec_roadmap, 14, 5, 1, 1)     
+    self.slider_block.addWidget(self.lineedit_amb_diff_spec_bl, 14, 2, 1, 1) 
+    self.slider_block.addWidget(self.button_set_amb_diff_spec_bl, 14, 3, 1, 1) 
+    self.slider_block.addWidget(self.lineedit_amb_diff_spec_rm, 14, 4, 1, 1) 
+    self.slider_block.addWidget(self.button_set_amb_diff_spec_rm, 14, 5, 1, 1)     
     
     self.hl_image_specs = Qt.QHBoxLayout()
     self.hl_image_specs.addWidget(self.label_image_data_size)
