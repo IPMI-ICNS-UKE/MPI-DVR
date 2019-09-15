@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Created on Wed Nov  7 16:23:58 2018
 
@@ -42,27 +41,33 @@ def preImageAnalysisSettings(self):
     index = self.combobox_pre_image_analysis.currentIndex()
     if (index == 0):
         # Pre-image analysis on
-        self.diagram_op.bool_create_histogram = True
-        self.diagram_op.bool_max_min = True
-        self.less_images = None
+        self.bool_create_histogram = self.diagram_op.bool_create_histogram = True
+        self.bool_max_min = self.diagram_op.bool_max_min = True
+        self.less_images = self.diagram_op.less_images = None
         
     if (index == 1):
         # Only max/min
-        self.diagram_op.bool_create_histogram = False
-        self.diagram_op.bool_max_min = True
-        self.less_images = None
+        self.bool_create_histogram = self.diagram_op.bool_create_histogram = False
+        self.bool_max_min = self.diagram_op.bool_max_min = True
+        self.less_images = self.diagram_op.less_images = None
         
     if (index == 2): 
         # Restrict to random selection of 100 images
-        self.diagram_op.bool_create_histogram = True
-        self.diagram_op.bool_max_min = True
-        self.diagram_op.less_images = 100
+        self.bool_create_histogram =self.diagram_op.bool_create_histogram = True
+        self.bool_max_min = self.diagram_op.bool_max_min = True
+        self.less_images = self.diagram_op.less_images = 100
     
     if (index == 3):
         # Pre-image analysis off
-        self.diagram_op.bool_create_histogram = False
-        self.diagram_op.bool_max_min = False
-        self.less_images = None   
+        
+        # In case of reloading new dataset, it is necessary to reset min/max 
+        # values to the default settings
+        self.min_value = self.default_min_value
+        self.max_value = self.default_max_value        
+        
+        self.bool_create_histogram = self.diagram_op.bool_create_histogram = False
+        self.bool_max_min = self.diagram_op.bool_max_min = False
+        self.less_images = self.diagram_op.less_images = None   
 
 
 def setColor(self, name):
@@ -99,9 +104,9 @@ def setColor(self, name):
             
         
 
-def resetSlidersToMidPosition(self):
-    self.slider_steepness_ramp_rm.setProperty("value", 10000*self.sl_pos_ri_rm)
-    self.slider_steepness_ramp_bl.setProperty("value", 10000*self.sl_pos_ri_bl)
+def resetSlidersToStartPosition(self):
+    self.slider_intervall_ramp_rm.setProperty("value", 10000*self.sl_pos_ri_rm)
+    self.slider_intervall_ramp_bl.setProperty("value", 10000*self.sl_pos_ri_bl)
     self.slider_th_bl.setProperty("value", 100*self.sl_pos_th_bl)
     self.slider_th_rm.setProperty("value", 100*self.sl_pos_th_rm)
     self.slider_op_bl.setProperty("value", 100*self.sl_pos_op_bl)
@@ -154,10 +159,10 @@ def setCameraOperation(self):
 def setAmbDiffSpec(self, name):        
     if name == 'bl': 
         le = self.lineedit_amb_diff_spec_bl
-        vp = self.vtk_op.volumePropertybl
+        vp = self.vtk_op.volumePropertyBl
     if name == 'rm':
         le = self.lineedit_amb_diff_spec_rm
-        vp = self.vtk_op.volumePropertyrm
+        vp = self.vtk_op.volumePropertyRm
         
     i = self.combobox_amb_diff_spec.currentIndex()
     le_input = le.text()
@@ -192,10 +197,10 @@ def setAmbDiffSpec(self, name):
 def placeholderLineEditAmbDiffSpec(self, name, i):
     if name == 'bl': 
         le = self.lineedit_amb_diff_spec_bl
-        vp = self.vtk_op.volumePropertybl
+        vp = self.vtk_op.volumePropertyBl
     if name == 'rm':
         le = self.lineedit_amb_diff_spec_rm
-        vp = self.vtk_op.volumePropertyrm
+        vp = self.vtk_op.volumePropertyRm
         
     if i == 1:   # Get currrent amb value        
         a = vp.GetAmbient()
@@ -263,7 +268,7 @@ def interpolateImageData(self, pressed):
             self.interpolation = True
             self.vtk_op.dimensions_vtk_data = self.dims            
             
-            self.vtk_op.adjustSizerm(self.dims)
+            self.vtk_op.adjustSizeRm(self.dims, self.checkbox_rm_buildup.isChecked())
             self.image_count = self.image_count - 1
             self.updateStatus()
             
@@ -281,7 +286,7 @@ def interpolateImageData(self, pressed):
         self.vtk_op.dimensions_vtk_data = self.dims_original
         
         # Resize rm matrix    
-        self.vtk_op.adjustSizerm(self.dims_original)
+        self.vtk_op.adjustSizeRm(self.dims_original, self.checkbox_rm_buildup.isChecked())
         self.image_count = self.image_count - 1
         self.updateStatus()
         
@@ -316,7 +321,7 @@ def functionSliderThBl(self, t):
     
 def functionSliderRampIntervallBl(self, t):
     scale_factor = ( self.max_value - self.min_value) / 10000.0
-    self.ri_bl =  (10001 - t) * scale_factor      
+    self.ri_bl = t * scale_factor      
     self.diagram_op.ri_bl = self.ri_bl
     self.diagram_op.manual_lookup_table_bl = False
     self.diagram_op.drawLookupTable()        
@@ -324,7 +329,7 @@ def functionSliderRampIntervallBl(self, t):
     
 def functionSliderRampIntervallRm(self, t):
     scale_factor = ( self.max_value - self.min_value ) / 10000.0
-    self.ri_rm =  (10001 - t) * scale_factor    
+    self.ri_rm =  t * scale_factor    
     self.diagram_op.ri_rm = self.ri_rm
     self.diagram_op.manual_lookup_table_rm = False
     self.diagram_op.drawLookupTable()    
@@ -350,7 +355,7 @@ def checkboxShowRoadmap(self):
     of the corresponding checkbox
     """    
     if not self.checkbox_rm_buildup.isChecked():                             
-        self.vtk_op.volumeMapperrm.SetInputData(self.vtk_op.createEmptyImageData())         
+        self.vtk_op.volumeMapperRm.SetInputData(self.vtk_op.createEmptyImageData())         
         self.iren.Initialize()
         self.iren.Start()
     else:
@@ -397,12 +402,31 @@ def setPlaybackSpeed1(self, t):
     self.t_ms = t    
     self.timer.start(self.t_ms)
     if not self.button_start_stop.isChecked(): 
-        self.timer.stop()        
+        self.timer.stop()     
+        
+def computeHistogramDataBin(self, directory, mode):    
+    """
+    This function gathers image values of the dataset in order 
+    to create a data bin that is used for histogram visualization. 
+    """       
+    self.data_bin = []         
+    if mode == 'mdf':                        
+        self.data_bin = self.diagram_op.data_bin = mdf_reader.returnDataArray(directory, \
+        self.bool_create_histogram, self.bool_max_min, self.less_images)             
+    if mode == 'mha':  
+        self.data_bin = self.diagram_op.data_bin = mha_reader.returnDataArray(directory, \
+        self.bool_create_histogram, self.bool_max_min, self.less_images)
+        
+    if self.bool_max_min == True:
+        self.max_value  = max(self.data_bin)
+        self.min_value = min(self.data_bin)        
+
     
 def loadMHA(self):        
     fname = Qt.QFileDialog.getExistingDirectory(self, 'Open file', 'c:\\')        
     name = fname + "/1.mha"     
     if os.path.isfile(name):
+        preImageAnalysisSettings(self)
         self.source_data_format = 'mha'
         self.directory_mha = fname
         self.number_of_total_images =  mha_reader.getNumberImages(self.directory_mha)   
@@ -420,21 +444,19 @@ def loadMHA(self):
         self.manual_lookup_table_bl = None
         self.manual_lookup_table_rm = None        
         
-        # Create histogram and determine min/max image values
-        
-        self.diagram_op.computeHistogramDataBin(self.directory_mha, 'mha')
-        self.diagram_op.drawHistogram()   
-        self.diagram_op.drawLookupTable()
+        # Create data bin (if pre image analysis settings active)
+        computeHistogramDataBin(self, self.directory_mha, 'mha')
         
         # Values are used to update the value range of the slider widgets
-        self.th_bl =  self.diagram_op.th_bl
-        self.th_rm =  self.diagram_op.th_rm
-        self.ri_bl =  self.diagram_op.ri_bl
-        self.ri_rm =  self.diagram_op.ri_rm       
+        self.updateVisualizationParameters()      
+       
+        # Create histogram from data bin (if pre image analysis settings 
+        # active) and draw look up table 
+        self.diagram_op.drawHistogram()   
+        self.diagram_op.drawLookupTable()
           
         # Create internal look up table for VTK pipeline                       
-        self.vtk_op.updateVTKparameters(self.min_value, 
-                self.max_value, self.dims, self.spacing)
+        self.vtk_op.updateVTKparameters(self.dims, self.spacing)
         
         # Update image count and image size display
         image_count = '1 / '+ str(self.number_of_total_images)      
@@ -443,7 +465,7 @@ def loadMHA(self):
         self.label_display_image_data_size.setText(image_size_text)
         
         # Enable all UI buttons, sliders and checkboxes
-        resetSlidersToMidPosition(self)
+        resetSlidersToStartPosition(self)
         enableDisableButtons(self,True) 
         self.updateStatus()
     else: 
@@ -452,6 +474,7 @@ def loadMHA(self):
 def loadMDF(self):    
     fname = Qt.QFileDialog.getOpenFileName(self, 'c:\\')[0]       
     if fname != '':
+        preImageAnalysisSettings(self)
         self.source_data_format = 'mdf'
         self.directory_mdf = fname
         self.image_count = 0
@@ -471,10 +494,7 @@ def loadMDF(self):
         self.dims_original = self.dims        
         
         # Create data bin and determine image value range
-        self.diagram_op.computeHistogramDataBin(self.directory_mdf, 'mdf')  
-        if self.diagram_op.bool_max_min == True:
-            self.min_value = self.diagram_op.min_value
-            self.max_value = self.diagram_op.max_value
+        computeHistogramDataBin(self, self.directory_mdf, 'mdf')  
         
         # Values are used to update the value range of the slider widgets
         self.updateVisualizationParameters() 
@@ -484,8 +504,7 @@ def loadMDF(self):
         self.diagram_op.drawLookupTable() 
         
         # Create internal look up table for VTK pipeline                  
-        self.vtk_op.updateVTKparameters(self.min_value, self.max_value, \
-                                        self.dims, self.spacing)
+        self.vtk_op.updateVTKparameters(self.dims, self.spacing)
         
         # Update image count and image size display
         image_count = '1 / '+ str(self.number_of_total_images)        
@@ -495,7 +514,7 @@ def loadMDF(self):
         self.label_display_image_data_size.setText(image_size_text)
         
         # Enable all UI buttons, sliders and checkboxes
-        resetSlidersToMidPosition(self)
+        resetSlidersToStartPosition(self)
         enableDisableButtons(self, True) 
         
         # Time stamps are used for computation of real frame rate    
@@ -508,8 +527,7 @@ def setScreenshotSaveDirectory(self):
     """    
     fname = Qt.QFileDialog.getExistingDirectory(self, 'Open file', 'c:\\')         
     self.directory_output = fname     
-    self.checkbox_save_images.setChecked(True)
-    
+    self.checkbox_save_images.setChecked(True)    
 
         
 def pauseAndPlay(self, pressed):     
@@ -534,7 +552,7 @@ def showNextImage(self):
         self.temporary_image = mdf_reader.createVTKDataFromHDF(self.directory_mdf, \
                                  self.image_count-1, self.interpolation, \
                                  self.dims)        
-    self.vtk_op.volumeMapperbl.SetInputData(self.temporary_image)       
+    self.vtk_op.volumeMapperBl.SetInputData(self.temporary_image)       
     if self.checkbox_rm_buildup.isChecked() and \
     self.rm_counter < self.number_of_total_images: 
         self.vtk_op.rmBuildup(self.temporary_image) 
@@ -561,7 +579,7 @@ def showPreviousImage(self):
     if self.source_data_format == 'mdf':            
         self.temporary_image = mdf_reader.createVTKDataFromHDF(self.directory_mdf, self.image_count-1, self.interpolation, self.dims)        
     
-    self.vtk_op.volumeMapperbl.SetInputData(self.temporary_image)     
+    self.vtk_op.volumeMapperBl.SetInputData(self.temporary_image)     
     self.rm_counter = self.rm_counter-1
     
     # Save screenshots of visualized MPI data
@@ -668,9 +686,7 @@ def initUI(self):
     self.checkbox_camera_specifications = Qt.QCheckBox("Show camera specifications", self)
     self.checkbox_camera_specifications.setChecked(True)
     self.checkbox_camera_specifications.stateChanged.connect(partial(checkboxCameraSpecifications, self))  
-
-              
-    
+   
     self.button_save_rm = Qt.QPushButton('Save roadmap')
     self.button_save_rm.clicked.connect( partial(saveRoapmap, self) )     
     
@@ -695,21 +711,21 @@ def initUI(self):
     self.label_th_slider.setText("Threshold")   
     self.label_th_slider.setFixedWidth(125) 
     
-    self.slider_steepness_ramp_rm = Qt.QSlider(self)
-    self.slider_steepness_ramp_rm.setMinimum(1)
-    self.slider_steepness_ramp_rm.setMaximum(10000)
-    self.slider_steepness_ramp_rm.setProperty("value", 10000*self.sl_pos_ri_rm)
-    self.slider_steepness_ramp_rm.setOrientation(QtCore.Qt.Horizontal)
-    self.slider_steepness_ramp_rm.setObjectName("slider_steepness_ramp_rm")
-    self.slider_steepness_ramp_rm.valueChanged.connect(partial(functionSliderRampIntervallRm, self))  
+    self.slider_intervall_ramp_rm = Qt.QSlider(self)
+    self.slider_intervall_ramp_rm.setMinimum(1)
+    self.slider_intervall_ramp_rm.setMaximum(10000)
+    self.slider_intervall_ramp_rm.setProperty("value", 10000*self.sl_pos_ri_rm)
+    self.slider_intervall_ramp_rm.setOrientation(QtCore.Qt.Horizontal)
+    self.slider_intervall_ramp_rm.setObjectName("slider_intervall_ramp_rm")
+    self.slider_intervall_ramp_rm.valueChanged.connect(partial(functionSliderRampIntervallRm, self))  
     
-    self.slider_steepness_ramp_bl = Qt.QSlider(self)
-    self.slider_steepness_ramp_bl.setMinimum(1)
-    self.slider_steepness_ramp_bl.setMaximum(10000)
-    self.slider_steepness_ramp_bl.setProperty("value", 10000*self.sl_pos_ri_bl)
-    self.slider_steepness_ramp_bl.setOrientation(QtCore.Qt.Horizontal)
-    self.slider_steepness_ramp_bl.setObjectName("slider_th_bl")
-    self.slider_steepness_ramp_bl.valueChanged.connect(partial(functionSliderRampIntervallBl, self) )  
+    self.slider_intervall_ramp_bl = Qt.QSlider(self)
+    self.slider_intervall_ramp_bl.setMinimum(1)
+    self.slider_intervall_ramp_bl.setMaximum(10000)
+    self.slider_intervall_ramp_bl.setProperty("value", 10000*self.sl_pos_ri_bl)
+    self.slider_intervall_ramp_bl.setOrientation(QtCore.Qt.Horizontal)
+    self.slider_intervall_ramp_bl.setObjectName("slider_th_bl")
+    self.slider_intervall_ramp_bl.valueChanged.connect(partial(functionSliderRampIntervallBl, self) )  
             
     self.slider_th_rm = Qt.QSlider(self)
     self.slider_th_rm.setMaximum(100)    
@@ -729,9 +745,9 @@ def initUI(self):
     self.label_op_slider.setText("Opacity")   
     self.label_op_slider.setFixedWidth(125) 
     
-    self.label_steepness_ramp = Qt.QLabel(self)        
-    self.label_steepness_ramp.setText("Intervall ramp");   
-    self.label_steepness_ramp.setFixedWidth(125)    
+    self.label_intervall_ramp_ramp = Qt.QLabel(self)        
+    self.label_intervall_ramp_ramp.setText("Intervall ramp");   
+    self.label_intervall_ramp_ramp.setFixedWidth(125)    
     
     self.slider_op_bl = Qt.QSlider(self)
     self.slider_op_bl.setMaximum(100)
@@ -960,9 +976,9 @@ def initUI(self):
     self.slider_block.addWidget(self.label_op_slider, 8, 1)
     self.slider_block.addWidget(self.slider_op_bl, 8, 2, 2,2)
     self.slider_block.addWidget(self.slider_op_rm, 8, 4, 2, 2)    
-    self.slider_block.addWidget(self.label_steepness_ramp, 10, 1)    
-    self.slider_block.addWidget(self.slider_steepness_ramp_bl, 10, 2, 2, 2)
-    self.slider_block.addWidget(self.slider_steepness_ramp_rm, 10, 4, 2, 2)     
+    self.slider_block.addWidget(self.label_intervall_ramp_ramp, 10, 1)    
+    self.slider_block.addWidget(self.slider_intervall_ramp_bl, 10, 2, 2, 2)
+    self.slider_block.addWidget(self.slider_intervall_ramp_rm, 10, 4, 2, 2)     
     self.slider_block.addWidget(self.label_manual_defintion_lookup_table, 12, 1)    
     self.slider_block.addWidget(self.button_activate_manual_lookup_table_bl, 12, 2, 1, 2)
     self.slider_block.addWidget(self.button_activate_manual_lookup_table_rm, 12, 4, 1, 2)  

@@ -1,15 +1,15 @@
-# -*- coding: utf-8 -*-
 """
 Created on Mon Oct 22 15:07:58 2018
 
 @author: domdo
 """
-
+# External libraries
 import sys
 from PyQt5 import Qt
 import time
 from vtk.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 
+# Own class objects
 import mdf_reader 
 import mha_reader 
 import diagram_class
@@ -57,20 +57,22 @@ class MainWindow(Qt.QMainWindow):
         # bl = bl, rm = roadmap, op = op, st = steepness ramp, 
         # th = th). Those values will be used if pre image analysis 
         # is deactivated.
-        self.min_value = 0.0
-        self.max_value = 0.1
+        self.default_min_value = 0.0
+        self.default_max_value = 0.1
         
-        self.sl_pos_th_bl = 0.5
-        self.sl_pos_th_rm = 0.5
+        self.min_value = self.default_min_value
+        self.max_value = self.default_max_value 
         
-        self.sl_pos_op_bl = 0.5
-        self.sl_pos_op_rm = 0.5   
+        self.sl_pos_th_bl = 0.3
+        self.sl_pos_th_rm = 0.3
         
-        self.sl_pos_ri_bl = 0.5
-        self.sl_pos_ri_rm = 0.5        
+        self.sl_pos_op_bl = 0.3
+        self.sl_pos_op_rm = 0.3   
+        
+        self.sl_pos_ri_bl = 0.3
+        self.sl_pos_ri_rm = 0.3        
         
         self.updateVisualizationParameters()
-
 
         # Setup of QT GUI
         interface.initUI(self)
@@ -135,7 +137,7 @@ class MainWindow(Qt.QMainWindow):
         if self.source_data_format == 'mdf':            
             self.temporary_image = mdf_reader.createVTKDataFromHDF(self.directory_mdf, self.image_count-1, self.interpolation, self.dims)           
         
-        self.vtk_op.volumeMapperbl.SetInputData(self.temporary_image)        
+        self.vtk_op.volumeMapperBl.SetInputData(self.temporary_image)        
         
         # Buildup of roadmap. Gets deactivated if whole cycle has been
         # completed
@@ -163,7 +165,7 @@ class MainWindow(Qt.QMainWindow):
     def displayPos(self):  
         """ 
         This function is constantly invoked by timer_cp and thereby 
-        continously updates the camera specifications (camera position, focal
+        continously updates the camera whereabouts (camera position, focal
         point)
         """
         pos = self.vtk_op.ren.GetActiveCamera().GetPosition()
@@ -176,7 +178,8 @@ class MainWindow(Qt.QMainWindow):
     
     def updateVisualizationParameters(self):
         # Compute visualization parameters 
-        diff = self.max_value - self.min_value        
+        diff = self.max_value - self.min_value   
+        
         self.op_max_bl = self.vtk_op.op_max_bl = self.diagram_op.op_max_bl = \
             self.sl_pos_th_bl
         self.op_max_rm = self.vtk_op.op_max_rm = self.diagram_op.op_max_rm = \

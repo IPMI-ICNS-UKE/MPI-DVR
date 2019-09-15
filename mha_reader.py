@@ -1,12 +1,9 @@
-# -*- coding: utf-8 -*-
-
-# -*- coding: utf-8 -*-
 """
 Created on Wed Nov  7 16:23:58 2018
 
 @author: domdo
 """
-
+# External libraries
 import os.path
 import vtk
 from vtk.util.numpy_support import vtk_to_numpy
@@ -30,9 +27,7 @@ def returnSpacingFirstImage(directory):
     imageReader = vtk.vtkMetaImageReader() 
     imageReader.SetFileName(createMHAFileName(directory, 1)) 
     imageReader.Update()
-    return imageReader.GetOutput().GetSpacing()
-    
-    
+    return imageReader.GetOutput().GetSpacing()    
 
 def createVTKDataFromMHAFile(directory, count, interpolation, vtk_image_data_dimensions):
     name = createMHAFileName(directory, count) 

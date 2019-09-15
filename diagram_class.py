@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-# -*- coding: utf-8 -*-
 """
 Created on Wed Nov  7 16:23:58 2018
 
@@ -11,10 +8,6 @@ Created on Wed Nov  7 16:23:58 2018
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import numpy as np
-
-# Own functions 
-import mha_reader
-import mdf_reader
 
 
 class plotDiagrams:
@@ -58,36 +51,16 @@ class plotDiagrams:
             self.ax.set_xlim( min(self.data_bin), max(self.data_bin)  )
             self.ax.set_yscale('log')        
             self.ax.hist(self.data_bin, bins=40)   
-
             self.ax.plot()    
             self.canvas.draw()  
             
         else: 
-            
+            self.ax.clear()         
+            # Draw text into diagram: Histogram analysis disabled
             self.ax.text(0.5, 0.7, "Disabled", size=50,transform=self.ax.transAxes, ha="right", va="top",\
                          bbox=dict(boxstyle="square", ec=(1., 0.5, 0.5), \
                                    fc=(1., 0.8, 0.8), ) )
-            # Draw text into diagram: Histogram analysis disabled
             
-    def computeHistogramDataBin(self, directory, mode):    
-        """
-        This function gathers image values of the dataset in order 
-        to create a data bin that is used for histogram visualization. 
-        """       
-        self.data_bin = []         
-        if mode == 'mdf':                        
-            self.data_bin = mdf_reader.returnDataArray(directory, \
-            self.bool_create_histogram, self.bool_max_min, self.less_images)             
-        if mode == 'mha':  
-            self.data_bin = mha_reader.returnDataArray(directory, \
-            self.bool_create_histogram, self.bool_max_min, self.less_images)
-            
-        if self.bool_max_min == True:
-            self.max_value  = max(self.data_bin)
-            self.min_value = min(self.data_bin)
-                   
-
-    
     def linearRampFunction(self, variable_ending, x):
         op_max_string = 'self.op_max_' + variable_ending        
         op_max = eval(op_max_string)        
@@ -108,7 +81,7 @@ class plotDiagrams:
         ri = eval(ri_string)        
         th_string = 'self.th_' + variable_ending 
         th = eval(th_string)    
-        print(ri, th, op_max)
+       
         
         
         x_increment = ri / self.number_of_ramp_points
