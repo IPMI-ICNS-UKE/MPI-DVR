@@ -1,8 +1,3 @@
-# -*- coding: utf-8 -*-
-
-# -*- coding: utf-8 -*-
-
-# -*- coding: utf-8 -*-
 """
 Created on Wed Nov  7 16:23:58 2018
 
@@ -63,54 +58,54 @@ class vtk_pipeline:
         empty_image_rm = self.createEmptyImageData()   
         self.grid_volume = self.createGrid()
         
-        self.volumeMapperbl = vtk.vtkGPUVolumeRayCastMapper()    
-        self.volumeMapperbl.SetInputData(empty_image_bl)
+        self.volumeMapperBl = vtk.vtkGPUVolumeRayCastMapper()    
+        self.volumeMapperBl.SetInputData(empty_image_bl)
         
-        self.volumeMapperrm = vtk.vtkGPUVolumeRayCastMapper()
-        self.volumeMapperrm.SetInputData(empty_image_rm)        
+        self.volumeMapperRm = vtk.vtkGPUVolumeRayCastMapper()
+        self.volumeMapperRm.SetInputData(empty_image_rm)        
         
         # Placeholder lookup tables are created
-        placeholderopTransferFunctionbl = self.createLookupTableSlider( 'bl')        
-        placeholderopTransferFunctionrm = self.createLookupTableSlider( 'rm')        
+        placeholderOpTransferFunctionBl = self.createLookupTableSlider( 'bl')        
+        placeholderOpTransferFunctionRm = self.createLookupTableSlider( 'rm')        
 
         
-        volumeGradientop = vtk.vtkPiecewiseFunction()
-        volumeGradientop.AddPoint(0.0,   0.2)
-        volumeGradientop.AddPoint(0.080,  0.5)
-        volumeGradientop.AddPoint(0.100, 0.8)
+        volumeGradientOpBl = vtk.vtkPiecewiseFunction()
+        volumeGradientOpBl.AddPoint(0.0,   0.2)
+        volumeGradientOpBl.AddPoint(0.080,  0.5)
+        volumeGradientOpBl.AddPoint(0.100, 0.8)
         
-        volumeGradientoprm = vtk.vtkPiecewiseFunction()
-        volumeGradientoprm.AddPoint(0,   0.2)
-        volumeGradientoprm.AddPoint(0.080,  0.5)
-        volumeGradientoprm.AddPoint(0.100, 0.8)
+        volumeGradientOpRm = vtk.vtkPiecewiseFunction()
+        volumeGradientOpRm.AddPoint(0,   0.2)
+        volumeGradientOpRm.AddPoint(0.080,  0.5)
+        volumeGradientOpRm.AddPoint(0.100, 0.8)
 
         
-        self.volumePropertybl = vtk.vtkVolumeProperty()        
-        self.volumePropertybl.SetScalarOpacity(placeholderopTransferFunctionbl)
-        self.volumePropertybl.ShadeOn()
-        self.volumePropertybl.SetInterpolationTypeToLinear()
-        self.volumePropertybl.SetAmbient(self.blAmbient)
-        self.volumePropertybl.SetDiffuse(self.blDiffuse)
-        self.volumePropertybl.SetSpecular(self.blSpecular) 
-        self.volumePropertybl.SetGradientOpacity(volumeGradientop)   
+        self.volumePropertyBl = vtk.vtkVolumeProperty()        
+        self.volumePropertyBl.SetScalarOpacity(placeholderOpTransferFunctionBl)
+        self.volumePropertyBl.ShadeOn()
+        self.volumePropertyBl.SetInterpolationTypeToLinear()
+        self.volumePropertyBl.SetAmbient(self.blAmbient)
+        self.volumePropertyBl.SetDiffuse(self.blDiffuse)
+        self.volumePropertyBl.SetSpecular(self.blSpecular) 
+        self.volumePropertyBl.SetGradientOpacity(volumeGradientOpBl)   
         
         
-        self.volumePropertyrm = vtk.vtkVolumeProperty()        
-        self.volumePropertyrm.SetScalarOpacity(placeholderopTransferFunctionrm)
-        self.volumePropertyrm.ShadeOn()              
-        self.volumePropertyrm.SetInterpolationTypeToLinear()
-        self.volumePropertyrm.SetAmbient(self.rmAmbient)
-        self.volumePropertyrm.SetDiffuse(self.rmDiffuse)
-        self.volumePropertyrm.SetSpecular(self.rmSpecular)
-        self.volumePropertyrm.SetGradientOpacity(volumeGradientoprm) 
+        self.volumePropertyRm = vtk.vtkVolumeProperty()        
+        self.volumePropertyRm.SetScalarOpacity(placeholderOpTransferFunctionRm)
+        self.volumePropertyRm.ShadeOn()              
+        self.volumePropertyRm.SetInterpolationTypeToLinear()
+        self.volumePropertyRm.SetAmbient(self.rmAmbient)
+        self.volumePropertyRm.SetDiffuse(self.rmDiffuse)
+        self.volumePropertyRm.SetSpecular(self.rmSpecular)
+        self.volumePropertyRm.SetGradientOpacity(volumeGradientOpRm) 
                      
         self.volume_bl = vtk.vtkVolume()
-        self.volume_bl.SetMapper(self.volumeMapperbl)
-        self.volume_bl.SetProperty(self.volumePropertybl)          
+        self.volume_bl.SetMapper(self.volumeMapperBl)
+        self.volume_bl.SetProperty(self.volumePropertyBl)          
         
         self.volume_rm = vtk.vtkVolume()
-        self.volume_rm.SetMapper(self.volumeMapperrm)
-        self.volume_rm.SetProperty(self.volumePropertyrm)   
+        self.volume_rm.SetMapper(self.volumeMapperRm)
+        self.volume_rm.SetProperty(self.volumePropertyRm)   
         
         # Creation of additional 2D actors to be visualized   
         # 1. Scalar bars to visualize color map range
@@ -135,37 +130,37 @@ class vtk_pipeline:
     
     def updateRampIntervallBl(self, ri_bl):    
         self.ri_bl = ri_bl
-        self.volumePropertybl.SetScalarOpacity(self.createLookupTableSlider( 'bl'))    
+        self.volumePropertyBl.SetScalarOpacity(self.createLookupTableSlider( 'bl'))    
         self.iren.Initialize()
         self.iren.Start()        
         
     def updateRampIntervallRm(self, ri_rm):   
         self.ri_rm = ri_rm
-        self.volumePropertyrm.SetScalarOpacity(self.createLookupTableSlider('rm'))      
+        self.volumePropertyRm.SetScalarOpacity(self.createLookupTableSlider('rm'))      
         self.iren.Initialize()
         self.iren.Start()    
     
     def updateThBl(self, th_bl):     
         self.th_bl = th_bl
-        self.volumePropertybl.SetScalarOpacity(self.createLookupTableSlider('bl'))      
+        self.volumePropertyBl.SetScalarOpacity(self.createLookupTableSlider('bl'))      
         self.iren.Initialize()
         self.iren.Start()
         
     def updateThRm(self, th_rm):  
         self.th_rm = th_rm       
-        self.volumePropertyrm.SetScalarOpacity(self.createLookupTableSlider('rm'))        
+        self.volumePropertyRm.SetScalarOpacity(self.createLookupTableSlider('rm'))        
         self.iren.Initialize()
         self.iren.Start()          
             
     def updateOpRm(self, op_max_rm):  
         self.op_max_rm = op_max_rm
-        self.volumePropertyrm.SetScalarOpacity(self.createLookupTableSlider('rm'))   
+        self.volumePropertyRm.SetScalarOpacity(self.createLookupTableSlider('rm'))   
         self.iren.Initialize()
         self.iren.Start()    
         
     def updateOpBl(self, op_max_bl):   
         self.op_max_bl = op_max_bl     
-        self.volumePropertybl.SetScalarOpacity(self.createLookupTableSlider('bl'))   
+        self.volumePropertyBl.SetScalarOpacity(self.createLookupTableSlider('bl'))   
         self.iren.Initialize()
         self.iren.Start()        
         
@@ -243,19 +238,9 @@ class vtk_pipeline:
             
         return opTransferFunction     
     
-    def updateVTKparameters(self, min_value, max_value, dim_images, spacing_images):
-        self.total_image_value_range = max_value - min_value
-        
-        self.min_value = min_value
-        self.max_value = max_value
-        
-        self.th_bl =  self.total_image_value_range / 2.0
-        self.th_rm = self.total_image_value_range / 2.0
-        self.ri_bl = self.total_image_value_range / 2.0
-        self.ri_rm = self.total_image_value_range / 2.0
-         
-        self.volumePropertybl.SetScalarOpacity(self.createLookupTableSlider('bl')) 
-        self.volumePropertyrm.SetScalarOpacity(self.createLookupTableSlider('rm')) 
+    def updateVTKparameters(self, dim_images, spacing_images):         
+        self.volumePropertyBl.SetScalarOpacity(self.createLookupTableSlider('bl')) 
+        self.volumePropertyRm.SetScalarOpacity(self.createLookupTableSlider('rm')) 
 
         self.setMonoColor('bl', 1, 0, 0)
         self.setMonoColor('rm', 0, 0, 1)       
@@ -268,16 +253,16 @@ class vtk_pipeline:
         self.actor_grid = self.createGrid()
         
         # Clear road-map, if new dataset is loaded 
-        self.clearrm()
+        self.clearRm()
     
     def setMonoColor(self, name, r, g, b):
         colorTransferFunction = vtk.vtkColorTransferFunction()        
         colorTransferFunction.AddRGBPoint(0,r,g,b)
         
         if name == 'bl': 
-            self.volumePropertybl.SetColor(colorTransferFunction)
+            self.volumePropertyBl.SetColor(colorTransferFunction)
         if name == 'rm':
-            self.volumePropertyrm.SetColor(colorTransferFunction)
+            self.volumePropertyRm.SetColor(colorTransferFunction)
             
         self.iren.Initialize()
         self.iren.Start()    
@@ -303,9 +288,9 @@ class vtk_pipeline:
     def updateColorMap(self, name, min_value, max_value):
         colorTransferFunction = self.createColorLookupTable(min_value, max_value)
         if name == 'bl':
-            self.volumePropertybl.SetColor(colorTransferFunction)
+            self.volumePropertyBl.SetColor(colorTransferFunction)
         if name == 'rm':
-            self.volumePropertyrm.SetColor(colorTransferFunction)
+            self.volumePropertyRm.SetColor(colorTransferFunction)
         self.iren.Initialize()
         self.iren.Start()
     
@@ -332,7 +317,7 @@ class vtk_pipeline:
         if name == 'bl':
             self.ren.RemoveActor2D(self.actor_scalar_bar_bl)
             self.actor_scalar_bar_bl = self.createColorScalarBar(min_value, max_value)
-            self.actor_scalar_bar_bl.SetTitle ('bl')
+            self.actor_scalar_bar_bl.SetTitle ('Bolus')
             self.actor_scalar_bar_bl.SetUnconstrainedFontSize(True)	
             self.actor_scalar_bar_bl.GetTitleTextProperty().SetColor(0.8, 0.8, 0.8)            
             self.actor_scalar_bar_bl.GetTitleTextProperty().SetFontSize(26)
@@ -349,7 +334,7 @@ class vtk_pipeline:
         if name == 'rm':
             self.ren.RemoveActor2D(self.actor_scalar_bar_rm)        
             self.actor_scalar_bar_rm = self.createColorScalarBar(min_value, max_value) 
-            self.actor_scalar_bar_rm.SetTitle ('rm')    
+            self.actor_scalar_bar_rm.SetTitle ('Roadmap')    
             self.actor_scalar_bar_rm.SetUnconstrainedFontSize(True)	
             self.actor_scalar_bar_rm.GetTitleTextProperty().SetColor(0.8, 0.8, 0.8)            
             self.actor_scalar_bar_rm.GetTitleTextProperty().SetFontSize(26)
@@ -358,7 +343,6 @@ class vtk_pipeline:
             self.actor_scalar_bar_rm.SetTextPositionToPrecedeScalarBar()	
             self.actor_scalar_bar_rm.SetVerticalTitleSeparation(20)	
             self.actor_scalar_bar_rm.GetLabelTextProperty().SetFontSize(20)
-
 
             if self.bool_scalar_bar_bl == True:
                 self.actor_scalar_bar_rm.SetPosition(0.03, 0.5)
@@ -377,8 +361,7 @@ class vtk_pipeline:
         
         # Compute cutoff value to eliminate background noise contribution to rm
         cutoff_rm_buildup = self.min_value + self.cutoff_factor_rm \
-                                 * (self.max_value -self.min_value)        
-      
+                                 * (self.max_value -self.min_value)           
             
         for z in range(current_image_data.GetDimensions()[2]):
             for y in range(current_image_data.GetDimensions()[1]):
@@ -388,9 +371,10 @@ class vtk_pipeline:
                     value_current_image = current_image_data.GetScalarComponentAsDouble(x, y, z, 0)
                     if value_current_image > cutoff_rm_buildup:
                         """ 
-                        For the rm buildup highest value of 
+                        For the Rm buildup highest value of 
                         rm matrix is compared to highest value 
-                        of current image data. 
+                        of current image data. Other build up
+                        functions can be implemented here.
                         """                                                
                         new_value = max({value_current_image, value_rm})                          
                         self.image_data_rm.SetScalarComponentFromDouble(x,y,z,0,new_value)
@@ -398,17 +382,18 @@ class vtk_pipeline:
                     new_value_rm = self.image_data_rm.GetScalarComponentAsDouble(x,y,z,0)    
                     self.image_data_new_rm.SetScalarComponentFromDouble(x, y, z, 0, new_value_rm)       
     
-        self.volumeMapperrm.SetInputData(self.image_data_new_rm)        
+        self.volumeMapperRm.SetInputData(self.image_data_new_rm)        
     
-    def adjustSizerm(self, dims):        
+    def adjustSizeRm(self, dims, checkbox_rm):        
         resizerm = vtk.vtkImageResize()
         resizerm.SetInputData(self.image_data_rm)
         resizerm.SetOutputDimensions(dims[0],dims[1],dims[2])
         resizerm.Update()
         self.image_data_rm = resizerm.GetOutput()
-        self.volumeMapperrm.SetInputData(self.image_data_rm)      
+        if checkbox_rm == True:
+            self.volumeMapperRm.SetInputData(self.image_data_rm)      
     
-    def clearrm(self):        
+    def clearRm(self):        
         self.image_data_rm = self.createEmptyImageData()       
     
     def createEmptyImageData(self):        

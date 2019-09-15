@@ -1,5 +1,4 @@
 # External libraries
-from PyQt5.QtWidgets import QTableWidget,QTableWidgetItem
 from PyQt5 import Qt
 
  

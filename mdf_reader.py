@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-
+# External libraries
 import h5py
 import vtk
 import numpy as np
@@ -44,9 +43,9 @@ def returnSpacingImageData(directory_mdf):
     spacing = [dset_FOV[0] / dset_size[0] * 1000, \
                dset_FOV[1] / dset_size[1] * 1000, 
                dset_FOV[2] / dset_size[2] *1000 ]
-    print("Spacing: ", spacing)
-    # NOTE: basic length unit had to be decreased, since VTK doesnt work with 
-    # spacing < 0.1
+    
+    # NOTE: basic length unit had to be decreased from [m] to [mm],
+    # since VTK doesnt work properly with decimal numbers 
     
     return spacing
 
