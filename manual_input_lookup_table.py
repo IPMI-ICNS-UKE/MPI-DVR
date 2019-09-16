@@ -12,7 +12,7 @@ class TableView(Qt.QMainWindow):
         self.lookup_table_matrix = list(zip(self.image_values, self.op_values))
              
         # Creation of table, count of rows and columns in *args
-        self.table1 = QTableWidget(4,2)
+        self.table1 = Qt.QTableWidget(4,2)
         self.table1.setHorizontalHeaderLabels(['Image value','Opacity'])
         self.table1.resizeColumnsToContents()
         self.table1.resizeRowsToContents()        
@@ -60,21 +60,21 @@ class TableView(Qt.QMainWindow):
         
         if self.currentData == 'bl':            
             self.parent().manual_lookup_table_bl = temp_lst
-            self.parent().diagram_op.manual_lookup_table_bl = True
-            self.parent().diagram_op.manual_lookup_table_matrix_bl = temp_lst
-            self.parent().diagram_op.drawLookupTable()
-            self.parent().vtk_op.lookup_table_matrix = temp_lst
-            a = self.parent().vtk_op.createLookupTableFromManualInput()
-            self.parent().vtk_op.volumePropertybl.SetScalarop(a)
+            self.parent().diag.manual_lookup_table_bl = True
+            self.parent().diag.manual_lookup_table_matrix_bl = temp_lst
+            self.parent().diag.drawLookupTable()
+            self.parent().vtk_pip.lookup_table_matrix = temp_lst
+            a = self.parent().vtk_pip.createLookupTableFromManualInput()
+            self.parent().vtk_pip.volumePropertyBl.SetScalarOpacity(a)
             
         if self.currentData == 'rm':
             self.parent().manual_lookup_table_rm = temp_lst
-            self.parent().diagram_op.manual_lookup_table_rm = True
-            self.parent().diagram_op.manual_lookup_table_matrix_rm = temp_lst
-            self.parent().diagram_op.drawLookupTable()
-            self.parent().vtk_op.lookup_table_matrix = temp_lst
-            a = self.parent().vtk_op.createLookupTableFromManualInput()
-            self.parent().vtk_op.volumePropertyrm.SetScalarop(a)
+            self.parent().diag.manual_lookup_table_rm = True
+            self.parent().diag.manual_lookup_table_matrix_rm = temp_lst
+            self.parent().diag.drawLookupTable()
+            self.parent().vtk_pip.lookup_table_matrix = temp_lst
+            a = self.parent().vtk_pip.createLookupTableFromManualInput()
+            self.parent().vtk_pip.volumePropertyRm.SetScalarOpacity(a)
             
         self.parent().iren.Initialize()
         self.parent().iren.Start()

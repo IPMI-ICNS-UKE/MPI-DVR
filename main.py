@@ -41,11 +41,11 @@ class MainWindow(Qt.QMainWindow):
         #   visualization parameters for sliders
         # - draw image value histogram
         # - draw lookup table curve         
-        self.diagram_op = diagram_class.plotDiagrams()  
+        self.diag = diagram_class.plotDiagrams()  
         
         # Creation of vtk class object to invoke the buildup
         # of visualization pipeline
-        self.vtk_op = vtk_pipeline()   
+        self.vtk_pip = vtk_pipeline()   
             
         # Create QT display interfaces that show visualization pipeline óutput             
         self.frame = Qt.QFrame()      
@@ -54,8 +54,8 @@ class MainWindow(Qt.QMainWindow):
 
         # Defintion of standard min/max image values and the  starting 
         # positions of the sliders (sl = slider, pos = position, 
-        # bl = bl, rm = roadmap, op = op, st = steepness ramp, 
-        # th = th). Those values will be used if pre image analysis 
+        # bl = bolus, rm = roadmap, op = opacity, ri = ramp intervall, 
+        # th = threshold). The values will be used if pre image analysis 
         # is deactivated.
         self.default_min_value = 0.0
         self.default_max_value = 0.1
@@ -78,7 +78,7 @@ class MainWindow(Qt.QMainWindow):
         interface.initUI(self)
         
         # Connect VTK pipeline renderer to QT frame display 
-        self.vtkWidget.GetRenderWindow().AddRenderer(self.vtk_op.ren)        
+        self.vtkWidget.GetRenderWindow().AddRenderer(self.vtk_pip.ren)        
        
         # Disable all interface widgets until source data is successfully loaded 
         # (except load buttons)
@@ -91,8 +91,8 @@ class MainWindow(Qt.QMainWindow):
         # Set main window visible and access render window interactor
         self.show()
         self.iren = self.vtkWidget.GetRenderWindow().GetInteractor()
-        self.vtk_op.iren = self.iren 
-        self.vtk_op.vtk_widget = self.vtkWidget
+        self.vtk_pip.iren = self.iren 
+        self.vtk_pip.vtk_widget = self.vtkWidget
         self.iren.Initialize()
         self.iren.Start()    
         
@@ -137,13 +137,13 @@ class MainWindow(Qt.QMainWindow):
         if self.source_data_format == 'mdf':            
             self.temporary_image = mdf_reader.createVTKDataFromHDF(self.directory_mdf, self.image_count-1, self.interpolation, self.dims)           
         
-        self.vtk_op.volumeMapperBl.SetInputData(self.temporary_image)        
+        self.vtk_pip.volumeMapperBl.SetInputData(self.temporary_image)        
         
         # Buildup of roadmap. Gets deactivated if whole cycle has been
         # completed
         if self.checkbox_rm_buildup.isChecked() and \
         self.rm_counter <= self.number_of_total_images:
-            self.vtk_op.rmBuildup(self.temporary_image) 
+            self.vtk_pip.rmBuildup(self.temporary_image) 
             self.rm_counter = self.rm_counter+1
                 
         # Computation of real frame rate        
@@ -168,35 +168,35 @@ class MainWindow(Qt.QMainWindow):
         continously updates the camera whereabouts (camera position, focal
         point)
         """
-        pos = self.vtk_op.ren.GetActiveCamera().GetPosition()
-        fp = self.vtk_op.ren.GetActiveCamera().GetFocalPoint()
-        text = 'Camera: ' + str( round(pos[0], 1)) + ', ' + str( round(pos[1], 1)) + ', ' \
-            + str( round(pos[2], 1)) + ' \nFocal point: ' + str( round(fp[0], 1)) + ', '  \
-            + str( round(fp[1], 1)) + ', ' \
-            + str( round(fp[2], 1))         
-        self.vtk_op.text_actor.SetInput( text )
+        pos = self.vtk_pip.ren.GetActiveCamera().GetPosition()
+        fp = self.vtk_pip.ren.GetActiveCamera().GetFocalPoint()
+        text = 'Camera: ' + str( round(pos[0], 1)) + ', '  \
+            + str( round(pos[1], 1)) + ', ' + str( round(pos[2], 1)) \
+            +' \nFocal point: ' + str( round(fp[0], 1)) + ', '  \
+            + str( round(fp[1], 1)) + ', ' + str( round(fp[2], 1))         
+        self.vtk_pip.text_actor.SetInput( text )
     
     def updateVisualizationParameters(self):
         # Compute visualization parameters 
         diff = self.max_value - self.min_value   
         
-        self.op_max_bl = self.vtk_op.op_max_bl = self.diagram_op.op_max_bl = \
+        self.op_max_bl = self.vtk_pip.op_max_bl = self.diag.op_max_bl = \
             self.sl_pos_th_bl
-        self.op_max_rm = self.vtk_op.op_max_rm = self.diagram_op.op_max_rm = \
+        self.op_max_rm = self.vtk_pip.op_max_rm = self.diag.op_max_rm = \
             self.sl_pos_th_rm
         
-        self.th_bl = self.vtk_op.th_bl = self.diagram_op.th_bl = \
+        self.th_bl = self.vtk_pip.th_bl = self.diag.th_bl = \
             self.min_value + diff * self.sl_pos_th_bl
-        self.th_rm = self.vtk_op.th_rm = self.diagram_op.th_rm = \
+        self.th_rm = self.vtk_pip.th_rm = self.diag.th_rm = \
             self.min_value + diff * self.sl_pos_th_rm
             
-        self.ri_bl = self.vtk_op.ri_bl = self.diagram_op.ri_bl = \
+        self.ri_bl = self.vtk_pip.ri_bl = self.diag.ri_bl = \
             diff * self.sl_pos_ri_bl
-        self.ri_rm = self.vtk_op.ri_rm = self.diagram_op.ri_rm = \
+        self.ri_rm = self.vtk_pip.ri_rm = self.diag.ri_rm = \
             diff * self.sl_pos_ri_rm
             
-        self.vtk_op.min_value = self.diagram_op.min_value = self.min_value
-        self.vtk_op.max_value = self.diagram_op.max_value = self.max_value
+        self.vtk_pip.min_value = self.diag.min_value = self.min_value
+        self.vtk_pip.max_value = self.diag.max_value = self.max_value
 
 if __name__ == "__main__":
     app = Qt.QApplication(sys.argv)
