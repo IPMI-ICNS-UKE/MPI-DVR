@@ -41,21 +41,21 @@ def preImageAnalysisSettings(self):
     index = self.combobox_pre_image_analysis.currentIndex()
     if (index == 0):
         # Pre-image analysis on
-        self.bool_create_histogram = self.diagram_op.bool_create_histogram = True
-        self.bool_max_min = self.diagram_op.bool_max_min = True
-        self.less_images = self.diagram_op.less_images = None
+        self.bool_create_histogram = self.diag.bool_create_histogram = True
+        self.bool_max_min = self.diag.bool_max_min = True
+        self.less_images = self.diag.less_images = None
         
     if (index == 1):
         # Only max/min
-        self.bool_create_histogram = self.diagram_op.bool_create_histogram = False
-        self.bool_max_min = self.diagram_op.bool_max_min = True
-        self.less_images = self.diagram_op.less_images = None
+        self.bool_create_histogram = self.diag.bool_create_histogram = False
+        self.bool_max_min = self.diag.bool_max_min = True
+        self.less_images = self.diag.less_images = None
         
     if (index == 2): 
         # Restrict to random selection of 100 images
-        self.bool_create_histogram =self.diagram_op.bool_create_histogram = True
-        self.bool_max_min = self.diagram_op.bool_max_min = True
-        self.less_images = self.diagram_op.less_images = 100
+        self.bool_create_histogram =self.diag.bool_create_histogram = True
+        self.bool_max_min = self.diag.bool_max_min = True
+        self.less_images = self.diag.less_images = 100
     
     if (index == 3):
         # Pre-image analysis off
@@ -65,9 +65,9 @@ def preImageAnalysisSettings(self):
         self.min_value = self.default_min_value
         self.max_value = self.default_max_value        
         
-        self.bool_create_histogram = self.diagram_op.bool_create_histogram = False
-        self.bool_max_min = self.diagram_op.bool_max_min = False
-        self.less_images = self.diagram_op.less_images = None   
+        self.bool_create_histogram = self.diag.bool_create_histogram = False
+        self.bool_max_min = self.diag.bool_max_min = False
+        self.less_images = self.diag.less_images = None   
 
 
 def setColor(self, name):
@@ -78,14 +78,14 @@ def setColor(self, name):
         
     if (i == 0):
         # Set color red 
-        self.vtk_op.setMonoColor(name, 1, 0, 0)
+        self.vtk_pip.setMonoColor(name, 1, 0, 0)
         
     if (i == 1):
         # Set color blue 
-        self.vtk_op.setMonoColor(name, 0, 0, 1)
+        self.vtk_pip.setMonoColor(name, 0, 0, 1)
         
     if (i == 2):
-        self.vtk_op.setMonoColor(name, 0, 1, 0)     
+        self.vtk_pip.setMonoColor(name, 0, 1, 0)     
         
     if (i == 3):
         # Set color map    
@@ -123,7 +123,7 @@ def setCameraOperation(self):
             y = float(coords_str[1])
             z = float(coords_str[2])            
     
-            self.vtk_op.setCameraPosition(x, y, z)    
+            self.vtk_pip.setCameraPosition(x, y, z)    
             self.displayPos()    
             self.iren.Initialize()
             self.iren.Start()
@@ -137,7 +137,7 @@ def setCameraOperation(self):
             y = float(coords_str[1])
             z = float(coords_str[2])           
             
-            self.vtk_op.setCameraFocalPoint(x, y, z)   
+            self.vtk_pip.setCameraFocalPoint(x, y, z)   
             
             self.displayPos()    
             self.iren.Initialize()
@@ -148,7 +148,7 @@ def setCameraOperation(self):
     if i == 2:   # Set rotation
         try: 
             rotation_angle = int(le_input  )
-            camera = self.vtk_op.ren.GetActiveCamera()
+            camera = self.vtk_pip.ren.GetActiveCamera()
             camera.Roll(rotation_angle)    
             self.displayPos()    
             self.iren.Initialize()
@@ -159,10 +159,10 @@ def setCameraOperation(self):
 def setAmbDiffSpec(self, name):        
     if name == 'bl': 
         le = self.lineedit_amb_diff_spec_bl
-        vp = self.vtk_op.volumePropertyBl
+        vp = self.vtk_pip.volumePropertyBl
     if name == 'rm':
         le = self.lineedit_amb_diff_spec_rm
-        vp = self.vtk_op.volumePropertyRm
+        vp = self.vtk_pip.volumePropertyRm
         
     i = self.combobox_amb_diff_spec.currentIndex()
     le_input = le.text()
@@ -197,10 +197,10 @@ def setAmbDiffSpec(self, name):
 def placeholderLineEditAmbDiffSpec(self, name, i):
     if name == 'bl': 
         le = self.lineedit_amb_diff_spec_bl
-        vp = self.vtk_op.volumePropertyBl
+        vp = self.vtk_pip.volumePropertyBl
     if name == 'rm':
         le = self.lineedit_amb_diff_spec_rm
-        vp = self.vtk_op.volumePropertyRm
+        vp = self.vtk_pip.volumePropertyRm
         
     if i == 1:   # Get currrent amb value        
         a = vp.GetAmbient()
@@ -235,7 +235,7 @@ def setCameraPosition(self):
     x = int( self.camera_position_x.text() )
     y = int( self.camera_position_y.text() )
     z = int( self.camera_position_z.text() )    
-    self.vtk_op.setCameraPosition(x, y, z)    
+    self.vtk_pip.setCameraPosition(x, y, z)    
     self.displayPos()    
     self.iren.Initialize()
     self.iren.Start()     
@@ -244,14 +244,14 @@ def setCameraFocalPoint(self):
     x = int( self.camera_focal_point_x.text() )
     y = int( self.camera_focal_point_y.text() )
     z = int( self.camera_focal_point_z.text() )    
-    self.vtk_op.setCameraFocalPoint(x, y, z)    
+    self.vtk_pip.setCameraFocalPoint(x, y, z)    
     self.displayPos()    
     self.iren.Initialize()
     self.iren.Start()     
     
 def rotateCamera(self):     
     rotation_angle = int( self.camera_rotation_angle.text() )
-    camera = self.vtk_op.ren.GetActiveCamera()    
+    camera = self.vtk_pip.ren.GetActiveCamera()    
     camera.Roll(rotation_angle)    
     self.displayPos()    
     self.iren.Initialize()
@@ -266,9 +266,9 @@ def interpolateImageData(self, pressed):
             
             self.dims = [x, y, z]
             self.interpolation = True
-            self.vtk_op.dimensions_vtk_data = self.dims            
+            self.vtk_pip.dimensions_vtk_data = self.dims            
             
-            self.vtk_op.adjustSizeRm(self.dims, self.checkbox_rm_buildup.isChecked())
+            self.vtk_pip.adjustSizeRm(self.dims, self.checkbox_rm_buildup.isChecked())
             self.image_count = self.image_count - 1
             self.updateStatus()
             
@@ -283,10 +283,10 @@ def interpolateImageData(self, pressed):
     else: 
         self.dims = self.dims_original
         self.interpolation = False
-        self.vtk_op.dimensions_vtk_data = self.dims_original
+        self.vtk_pip.dimensions_vtk_data = self.dims_original
         
         # Resize rm matrix    
-        self.vtk_op.adjustSizeRm(self.dims_original, self.checkbox_rm_buildup.isChecked())
+        self.vtk_pip.adjustSizeRm(self.dims_original, self.checkbox_rm_buildup.isChecked())
         self.image_count = self.image_count - 1
         self.updateStatus()
         
@@ -306,48 +306,48 @@ def manualLookupTablerm(self):
 def functionSliderThRm(self, t):
     scale_factor = ( self.max_value - self.min_value ) / 100.0    
     self.th_rm = self.min_value + t  * scale_factor    
-    self.diagram_op.th_rm = self.th_rm
-    self.diagram_op.manual_lookup_table_rm = False
-    self.diagram_op.drawLookupTable()        
-    self.vtk_op.updateThRm(self.th_rm)     
+    self.diag.th_rm = self.th_rm
+    self.diag.manual_lookup_table_rm = False
+    self.diag.drawLookupTable()        
+    self.vtk_pip.updateThRm(self.th_rm)     
     
 def functionSliderThBl(self, t):
     scale_factor = ( self.max_value - self.min_value ) / 100.0    
     self.th_bl = self.min_value + t  * scale_factor    
-    self.diagram_op.th_bl = self.th_bl
-    self.diagram_op.manual_lookup_table_bl = False
-    self.diagram_op.drawLookupTable()     
-    self.vtk_op.updateThBl(self.th_bl)        
+    self.diag.th_bl = self.th_bl
+    self.diag.manual_lookup_table_bl = False
+    self.diag.drawLookupTable()     
+    self.vtk_pip.updateThBl(self.th_bl)        
     
 def functionSliderRampIntervallBl(self, t):
     scale_factor = ( self.max_value - self.min_value) / 10000.0
     self.ri_bl = t * scale_factor      
-    self.diagram_op.ri_bl = self.ri_bl
-    self.diagram_op.manual_lookup_table_bl = False
-    self.diagram_op.drawLookupTable()        
-    self.vtk_op.updateRampIntervallBl(self.ri_bl)
+    self.diag.ri_bl = self.ri_bl
+    self.diag.manual_lookup_table_bl = False
+    self.diag.drawLookupTable()        
+    self.vtk_pip.updateRampIntervallBl(self.ri_bl)
     
 def functionSliderRampIntervallRm(self, t):
     scale_factor = ( self.max_value - self.min_value ) / 10000.0
     self.ri_rm =  t * scale_factor    
-    self.diagram_op.ri_rm = self.ri_rm
-    self.diagram_op.manual_lookup_table_rm = False
-    self.diagram_op.drawLookupTable()    
-    self.vtk_op.updateRampIntervallRm(self.ri_rm)
+    self.diag.ri_rm = self.ri_rm
+    self.diag.manual_lookup_table_rm = False
+    self.diag.drawLookupTable()    
+    self.vtk_pip.updateRampIntervallRm(self.ri_rm)
 
 def functionSliderOpBl(self, t):
     self.op_max_bl = t / 100.0    
-    self.diagram_op.op_max_bl = self.op_max_bl
-    self.diagram_op.manual_lookup_table_bl = False
-    self.diagram_op.drawLookupTable()    
-    self.vtk_op.updateOpBl(self.op_max_bl)
+    self.diag.op_max_bl = self.op_max_bl
+    self.diag.manual_lookup_table_bl = False
+    self.diag.drawLookupTable()    
+    self.vtk_pip.updateOpBl(self.op_max_bl)
     
 def functionSliderOpRm(self, t):
     self.op_max_rm = t / 100.0    
-    self.diagram_op.op_max_rm = self.op_max_rm
-    self.diagram_op.manual_lookup_table_rm = False
-    self.diagram_op.drawLookupTable()    
-    self.vtk_op.updateOpRm(self.op_max_rm)    
+    self.diag.op_max_rm = self.op_max_rm
+    self.diag.manual_lookup_table_rm = False
+    self.diag.drawLookupTable()    
+    self.vtk_pip.updateOpRm(self.op_max_rm)    
 
 def checkboxShowRoadmap(self):      
     """ 
@@ -355,11 +355,11 @@ def checkboxShowRoadmap(self):
     of the corresponding checkbox
     """    
     if not self.checkbox_rm_buildup.isChecked():                             
-        self.vtk_op.volumeMapperRm.SetInputData(self.vtk_op.createEmptyImageData())         
+        self.vtk_pip.volumeMapperRm.SetInputData(self.vtk_pip.createEmptyImageData())         
         self.iren.Initialize()
         self.iren.Start()
     else:
-        self.vtk_op.rmBuildup(self.temporary_image)
+        self.vtk_pip.rmBuildup(self.temporary_image)
         self.iren.Initialize()
         self.iren.Start()
         
@@ -370,12 +370,12 @@ def checkboxFOVFunction(self):
     checkbox
     """
     if not self.checkbox_FOV.isChecked():                                      
-        self.vtk_op.ren.RemoveActor(self.vtk_op.grid) 
+        self.vtk_pip.ren.RemoveActor(self.vtk_pip.grid) 
         self.iren.Initialize()
         self.iren.Start()
     else:
-        self.vtk_op.grid = self.vtk_op.createGrid()
-        self.vtk_op.ren.AddActor(self.vtk_op.grid)
+        self.vtk_pip.grid = self.vtk_pip.createGrid()
+        self.vtk_pip.ren.AddActor(self.vtk_pip.grid)
         self.iren.Initialize()
         self.iren.Start()
         
@@ -385,11 +385,11 @@ def checkboxCameraSpecifications(self):
     rotation
     """
     if not self.checkbox_camera_specifications.isChecked():                                      
-        self.vtk_op.ren.RemoveActor(self.vtk_op.text_actor) 
+        self.vtk_pip.ren.RemoveActor(self.vtk_pip.text_actor) 
         self.iren.Initialize()
         self.iren.Start()
     else:        
-        self.vtk_op.ren.AddActor(self.vtk_op.text_actor)
+        self.vtk_pip.ren.AddActor(self.vtk_pip.text_actor)
         self.iren.Initialize()
         self.iren.Start()
 
@@ -411,10 +411,10 @@ def computeHistogramDataBin(self, directory, mode):
     """       
     self.data_bin = []         
     if mode == 'mdf':                        
-        self.data_bin = self.diagram_op.data_bin = mdf_reader.returnDataArray(directory, \
+        self.data_bin = self.diag.data_bin = mdf_reader.returnDataArray(directory, \
         self.bool_create_histogram, self.bool_max_min, self.less_images)             
     if mode == 'mha':  
-        self.data_bin = self.diagram_op.data_bin = mha_reader.returnDataArray(directory, \
+        self.data_bin = self.diag.data_bin = mha_reader.returnDataArray(directory, \
         self.bool_create_histogram, self.bool_max_min, self.less_images)
         
     if self.bool_max_min == True:
@@ -452,11 +452,11 @@ def loadMHA(self):
        
         # Create histogram from data bin (if pre image analysis settings 
         # active) and draw look up table 
-        self.diagram_op.drawHistogram()   
-        self.diagram_op.drawLookupTable()
+        self.diag.drawHistogram()   
+        self.diag.drawLookupTable()
           
         # Create internal look up table for VTK pipeline                       
-        self.vtk_op.updateVTKparameters(self.dims, self.spacing)
+        self.vtk_pip.updateVTKparameters(self.dims, self.spacing)
         
         # Update image count and image size display
         image_count = '1 / '+ str(self.number_of_total_images)      
@@ -500,11 +500,11 @@ def loadMDF(self):
         self.updateVisualizationParameters() 
         
         # Create histogram
-        self.diagram_op.drawHistogram()  
-        self.diagram_op.drawLookupTable() 
+        self.diag.drawHistogram()  
+        self.diag.drawLookupTable() 
         
         # Create internal look up table for VTK pipeline                  
-        self.vtk_op.updateVTKparameters(self.dims, self.spacing)
+        self.vtk_pip.updateVTKparameters(self.dims, self.spacing)
         
         # Update image count and image size display
         image_count = '1 / '+ str(self.number_of_total_images)        
@@ -552,10 +552,10 @@ def showNextImage(self):
         self.temporary_image = mdf_reader.createVTKDataFromHDF(self.directory_mdf, \
                                  self.image_count-1, self.interpolation, \
                                  self.dims)        
-    self.vtk_op.volumeMapperBl.SetInputData(self.temporary_image)       
+    self.vtk_pip.volumeMapperBl.SetInputData(self.temporary_image)       
     if self.checkbox_rm_buildup.isChecked() and \
     self.rm_counter < self.number_of_total_images: 
-        self.vtk_op.rmBuildup(self.temporary_image) 
+        self.vtk_pip.rmBuildup(self.temporary_image) 
         self.rm_counter = self.rm_counter+1
         
     # Save screenshots of visualized MPI data
@@ -579,7 +579,7 @@ def showPreviousImage(self):
     if self.source_data_format == 'mdf':            
         self.temporary_image = mdf_reader.createVTKDataFromHDF(self.directory_mdf, self.image_count-1, self.interpolation, self.dims)        
     
-    self.vtk_op.volumeMapperBl.SetInputData(self.temporary_image)     
+    self.vtk_pip.volumeMapperBl.SetInputData(self.temporary_image)     
     self.rm_counter = self.rm_counter-1
     
     # Save screenshots of visualized MPI data
@@ -618,15 +618,15 @@ def screenshotAndSave(self):
     if (os.path.isdir(self.directory_output)):
         name_output = "/%d.png" %self.screenshot_number
         string_directory = self.directory_output + name_output
-        self.vtk_op.saveScreenshot(string_directory)
+        self.vtk_pip.saveScreenshot(string_directory)
         self.screenshot_number = self.screenshot_number + 1
     
 def saveRoapmap(self):        
     fileName, _ = Qt.QFileDialog.getSaveFileName(self, \
      "QFileDialog.getSaveFileName()","","Input Files(*.mha)")       
-    self.vtk_op.writer_rm.SetInputData(self.vtk_op.image_data_rm)
-    self.vtk_op.writer_rm.SetFileName(fileName)
-    self.vtk_op.writer_rm.Write()   
+    self.vtk_pip.writer_rm.SetInputData(self.vtk_pip.image_data_rm)
+    self.vtk_pip.writer_rm.SetFileName(fileName)
+    self.vtk_pip.writer_rm.Write()   
 
     
     
@@ -1007,7 +1007,7 @@ def initUI(self):
     # Align all widgets or horizontal layouts along the vertical main axis 
     self.vl_main.addLayout(self.hl_load_buttons)
     self.vl_main.addLayout(self.hl_checkboxes)
-    self.vl_main.addWidget(self.diagram_op.canvas)
+    self.vl_main.addWidget(self.diag.canvas)
     self.vl_main.addWidget(self.label_text_above_image_data)    
     self.vl_main.addLayout(self.hl_image_specs)
     self.vl_main.addWidget(self.label_placeholder)    
